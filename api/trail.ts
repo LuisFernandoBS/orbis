@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 export default async function handler(req:any,res:any){
 if(req.method!=='POST')return res.status(405).json({error:'Método não permitido'});
 const tok=String(req.headers.authorization||'').replace('Bearer ','');
-const url=process.env.SUPABASE_URL||process.env.VITE_SUPABASE_URL;
+const url=process.env.SUPABASE_URL;
 const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
 if(!url||!serviceRoleKey)return res.status(500).json({error:'Configuração do Supabase ausente no servidor.'});
 const supabase=createClient(url,serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
