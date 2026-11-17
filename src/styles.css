@@ -32,3 +32,4 @@ a.tab{text-decoration:none}.tab.active{background:var(--pri);color:#fff}.pick{ma
 .toast{position:fixed;right:16px;bottom:90px;background:var(--card);border:1px solid var(--bd);padding:10px 14px;border-radius:10px;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 [data-compact=true] main{padding:12px}[data-compact=true] .card{padding:9px;margin-bottom:8px}[data-anim=off] *{transition:none!important;animation:none!important}
 @media(max-width:767px){.subnav{display:block}.two{grid-template-columns:1fr!important}}
+.logo-img{width:32px;height:32px;object-fit:contain;flex:none}
