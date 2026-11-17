@@ -1,9 +1,15 @@
-// Função serverless da Vercel: a chave fica em process.env.GEMINI_API_KEY (nunca vai para o navegador).
+import {createClient} from '@supabase/supabase-js';
+
+// Funções serverless da Vercel: credenciais privadas ficam em process.env e nunca vão para o navegador.
 export default async function handler(req:any,res:any){
 if(req.method!=='POST')return res.status(405).json({error:'Método não permitido'});
 const tok=String(req.headers.authorization||'').replace('Bearer ','');
-const u=await fetch((process.env.VITE_SUPABASE_URL||'')+'/auth/v1/user',{headers:{Authorization:'Bearer '+tok,apikey:process.env.VITE_SUPABASE_ANON_KEY||''}}).catch(()=>null);
-if(!tok||!u||!u.ok)return res.status(401).json({error:'Faça login para gerar trilhas.'});
+const url=process.env.SUPABASE_URL||process.env.VITE_SUPABASE_URL;
+const serviceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+if(!url||!serviceRoleKey)return res.status(500).json({error:'Configuração do Supabase ausente no servidor.'});
+const supabase=createClient(url,serviceRoleKey,{auth:{persistSession:false,autoRefreshToken:false}});
+const {data:{user},error}=await supabase.auth.getUser(tok);
+if(!tok||error||!user)return res.status(401).json({error:'Faça login para gerar trilhas.'});
 const key=process.env.GEMINI_API_KEY;if(!key)return res.status(500).json({error:'GEMINI_API_KEY não configurada no servidor.'});
 const model=process.env.GEMINI_MODEL||'gemini-2.5-flash';
 const b=typeof req.body==='string'?JSON.parse(req.body||'{}'):req.body??{};
