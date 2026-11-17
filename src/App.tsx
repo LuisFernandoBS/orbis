@@ -1,11 +1,30 @@
-import {NavLink,Route,Routes,Navigate} from 'react-router-dom';import {useEffect,useState} from 'react';
-import {LayoutDashboard,ShoppingCart,Wallet,Brain,Settings as Cfg,PanelLeftClose,PanelLeft,Orbit} from 'lucide-react';
-import {useStore} from './store';import Dashboard from './pages/Dashboard';import Compras from './pages/Compras';import Despesas from './pages/Despesas';import Conhecimento from './pages/Conhecimento';import Neural from './pages/Neural';import Trilha from './pages/Trilha';import Biblioteca from './pages/Biblioteca';import Settings from './pages/Settings';
-const nav=[{to:'/',l:'Dashboard',i:LayoutDashboard,g:''},{to:'/compras',l:'Compras',i:ShoppingCart,g:'Casa'},{to:'/despesas',l:'Despesas',i:Wallet,g:''},{to:'/conhecimento',l:'Conhecimento',i:Brain,g:'Conhecimento'},{to:'/config',l:'Configurações',i:Cfg,g:''}];
-export default function App(){const {prefs}=useStore();const [col,setCol]=useState(false);
-useEffect(()=>{document.documentElement.dataset.theme=prefs.theme},[prefs.theme]);
-return <div className={'app'+(col?' col':'')}>
+import {NavLink,Route,Routes,Navigate,useLocation,Link} from 'react-router-dom';import {useEffect,useState} from 'react';
+import {LayoutDashboard,LayoutGrid,ShoppingCart,Wallet,Brain,Home,Heart,Clock,List,Box,Sparkles,BookOpen,Map as MapIcon,Settings as Cfg,PanelLeftClose,PanelLeft,Orbit,ChevronDown,ChevronRight,Sofa,BedDouble,CookingPot,Bath,DoorOpen,Sun,Moon,User,type LucideIcon} from 'lucide-react';
+import {useStore,set,usePrefs} from './store';import type {Room} from './types';
+import Dashboard from './pages/Dashboard';import Compras from './pages/Compras';import Despesas from './pages/Despesas';import Conhecimento from './pages/Conhecimento';import KnowDash from './pages/KnowDash';import Neural from './pages/Neural';import Trilha from './pages/Trilha';import Biblioteca from './pages/Biblioteca';import Settings from './pages/Settings';
+interface N{k:string;l:string;i:LucideIcon;to?:string;pre?:string;kids?:N[]}
+const ri:Record<string,LucideIcon>={sala:Sofa,quarto:BedDouble,cozinha:CookingPot,banheiro:Bath};
+const tree=(rooms:Room[]):N[]=>[{k:'d',l:'Dashboard',i:LayoutDashboard,to:'/'},
+{k:'casa',l:'Casa',i:Home,pre:'/casa',kids:[
+{k:'comp',l:'Compras',i:ShoppingCart,pre:'/casa/compras',kids:[{k:'cg',l:'Visão Geral',i:LayoutGrid,to:'/casa/compras'},...rooms.map(r=>({k:r.id,l:r.name,i:ri[r.id]??DoorOpen,to:'/casa/compras/'+r.id})),{k:'w',l:'Lista de Desejos',i:Heart,to:'/casa/compras/desejos'},{k:'h',l:'Histórico',i:Clock,to:'/casa/compras/hist'}]},
+{k:'desp',l:'Despesas',i:Wallet,pre:'/casa/despesas',kids:[{k:'dg',l:'Visão Geral',i:LayoutGrid,to:'/casa/despesas'},{k:'dl',l:'Lista',i:List,to:'/casa/despesas/lista'}]}]},
+{k:'know',l:'Conhecimento',i:Brain,pre:'/conhecimento',kids:[{k:'kd',l:'Dashboard',i:LayoutGrid,to:'/conhecimento'},{k:'km',l:'Mapa Neural',i:MapIcon,to:'/conhecimento/mapa'},{k:'ka',l:'Assuntos',i:Box,to:'/conhecimento/assuntos'},{k:'kt',l:'Trilha com IA',i:Sparkles,to:'/conhecimento/trilha'},{k:'kb',l:'Biblioteca',i:BookOpen,to:'/conhecimento/biblioteca'}]},
+{k:'cfg',l:'Configurações',i:Cfg,to:'/config'}];
+const sec=(ns:N[],p:string):N|undefined=>{for(const n of ns)if(n.kids&&p.startsWith(n.pre!))return sec(n.kids,p)??n};
+export default function App(){const s=useStore();const p=usePrefs();const loc=useLocation();const [col,setCol]=useState(false);const [o,setO]=useState<Record<string,boolean>>({});const T=tree(s.rooms);
+useEffect(()=>{const r=document.documentElement;r.dataset.theme=p.theme;r.dataset.compact=String(p.compact);r.dataset.anim=p.anim?'on':'off';
+if(p.accent==='#8B5CF6'){r.style.removeProperty('--pri');r.style.removeProperty('--lav')}else{r.style.setProperty('--pri',p.accent);r.style.setProperty('--lav',p.accent)}},[p.theme,p.compact,p.anim,p.accent]);
+const R=(n:N,d:number):React.ReactNode=>{const I=n.i,pad={paddingLeft:12+d*14};
+if(!n.kids)return <NavLink key={n.k} to={n.to!} end className="link" style={pad}><I size={18}/><span>{n.l}</span></NavLink>;
+const open=o[n.k]??loc.pathname.startsWith(n.pre!);
+return <div key={n.k}><button className={'link'+(loc.pathname.startsWith(n.pre!)?' on':'')} style={{...pad,width:'100%'}} onClick={()=>setO({...o,[n.k]:!open})}><I size={18}/><span>{n.l}</span><span style={{marginLeft:'auto',display:'grid'}}>{open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</span></button>{open&&n.kids.map(k=>R(k,d+1))}</div>};
+const sn=sec(T,loc.pathname);
+return <div className={'app'+(col||!p.labels?' col':'')}>
 <aside className="side"><div className="brand"><span className="logo"><Orbit size={18}/></span><b>ORBIS</b><button className="ib" onClick={()=>setCol(!col)} aria-label="Recolher menu">{col?<PanelLeft size={18}/>:<PanelLeftClose size={18}/>}</button></div>
-{nav.map(n=><div key={n.to}>{n.g==='Casa'&&<div className="grp">Casa</div>}<NavLink to={n.to} end={n.to==='/'} className="link"><n.i size={18}/><span>{n.l}</span></NavLink></div>)}</aside>
-<main><Routes><Route path="/" element={<Dashboard/>}/><Route path="/compras" element={<Compras/>}/><Route path="/despesas" element={<Despesas/>}/><Route path="/conhecimento" element={<Conhecimento/>}/><Route path="/conhecimento/mapa" element={<Neural/>}/><Route path="/conhecimento/trilha" element={<Trilha/>}/><Route path="/conhecimento/biblioteca" element={<Biblioteca/>}/><Route path="/config" element={<Settings/>}/><Route path="*" element={<Navigate to="/"/>}/></Routes></main>
-<nav className="bottom">{nav.map(n=><NavLink key={n.to} to={n.to} end={n.to==='/'} className="link"><n.i size={20}/><span>{n.l.slice(0,11)}</span></NavLink>)}</nav></div>}
+{T.map(n=>R(n,0))}
+<div className="foot"><button className="link" style={{width:'100%'}} onClick={()=>set(st=>({...st,prefs:{...st.prefs,theme:p.theme==='dark'?'light':'dark'}}))}>{p.theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}<span>{p.theme==='dark'?'Modo Claro':'Modo Escuro'}</span></button>
+<Link to="/config" className="link"><User size={18}/><span>{p.name}<br/><small>{p.email}</small></span></Link></div></aside>
+<main>{sn&&<div className="subnav"><div className="tabs">{sn.kids!.map(k=><NavLink key={k.k} to={k.to??'#'} end className="tab">{k.l}</NavLink>)}</div></div>}
+<Routes><Route path="/" element={<Dashboard/>}/><Route path="/casa/compras" element={<Compras/>}/><Route path="/casa/compras/:room" element={<Compras/>}/><Route path="/casa/despesas" element={<Despesas view="geral"/>}/><Route path="/casa/despesas/lista" element={<Despesas view="lista"/>}/>
+<Route path="/conhecimento" element={<KnowDash/>}/><Route path="/conhecimento/mapa" element={<Neural/>}/><Route path="/conhecimento/assuntos" element={<Conhecimento/>}/><Route path="/conhecimento/trilha" element={<Trilha/>}/><Route path="/conhecimento/biblioteca" element={<Biblioteca/>}/><Route path="/config" element={<Settings/>}/><Route path="*" element={<Navigate to="/"/>}/></Routes></main>
+<nav className="bottom">{[['/',LayoutDashboard,'Dashboard'],['/casa/compras',ShoppingCart,'Compras'],['/casa/despesas',Wallet,'Despesas'],['/conhecimento',Brain,'Saber'],['/config',Cfg,'Config']].map(([to,I,l])=>{const Ic=I as LucideIcon;return <NavLink key={to as string} to={to as string} end={to==='/'} className="link"><Ic size={20}/><span>{l as string}</span></NavLink>})}</nav></div>}

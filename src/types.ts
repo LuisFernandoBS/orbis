@@ -9,4 +9,5 @@ export interface Goal{id:string;name:string;done:boolean;subs:Sub[]}
 export interface Subject{id:string;name:string;goals:Goal[]}
 export type MType='video'|'artigo'|'pdf'|'curso'|'doc'|'github';export type MStatus='pendente'|'estudando'|'estudado';
 export interface Material{id:string;name:string;url:string;type:MType;status:MStatus;links:string[]}
-export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];prefs:{theme:'dark'|'light'}}
+export interface Prefs{theme:'dark'|'light';accent?:string;compact?:boolean;anim?:boolean;labels?:boolean;notif?:boolean;autosave?:boolean;name?:string;email?:string}
+export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];prefs:Prefs}

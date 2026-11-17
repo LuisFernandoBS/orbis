@@ -6,7 +6,7 @@ const [busy,setBusy]=useState(false);const [err,setErr]=useState('');const [d,se
 const gen=async()=>{setBusy(true);setErr('');try{const t=await generateTrail({topic,mode,level,objective:obj});setD({goals:t.goals.map(g=>({id:uid(),name:g.name,subs:g.subs.map(n=>({id:uid(),name:n}))}))})}catch(e){setErr((e as Error).message)}setBusy(false)};
 const ug=(id:string,fn:(g:D['goals'][0])=>D['goals'][0])=>setD(x=>x&&{goals:x.goals.map(g=>g.id===id?fn(g):g)});
 const approve=()=>{if(!d)return;const goals=d.goals.filter(g=>g.name.trim()).map(g=>({id:uid(),name:g.name,done:false,subs:g.subs.filter(y=>y.name.trim()).map(y=>({id:uid(),name:y.name,done:false}))}));
-set(st=>({...st,subjects:target==='new'?[...st.subjects,{id:uid(),name:topic.trim()||'Novo assunto',goals}]:st.subjects.map(x=>x.id===target?{...x,goals:[...x.goals,...goals]}:x)}));nav('/conhecimento')};
+set(st=>({...st,subjects:target==='new'?[...st.subjects,{id:uid(),name:topic.trim()||'Novo assunto',goals}]:st.subjects.map(x=>x.id===target?{...x,goals:[...x.goals,...goals]}:x)}));nav('/conhecimento/assuntos')};
 return <><KNav/><h1>Trilha com IA</h1><p className="sub">Nada é cadastrado sem a sua aprovação.</p>
 <div className="row"><button className={'btn '+(mode==='auto'?'':'ghost')} onClick={()=>setMode('auto')}><Zap size={16}/>Automática</button><button className={'btn '+(mode==='custom'?'':'ghost')} onClick={()=>setMode('custom')}><Target size={16}/>Personalizada</button></div>
 <form className="card form" onSubmit={e=>{e.preventDefault();gen()}}><label>Assunto<input required value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Ex: React, AWS…"/></label>

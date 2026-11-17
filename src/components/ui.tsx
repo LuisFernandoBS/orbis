@@ -6,3 +6,5 @@ export const Progress=({v}:{v:number})=><div className="bar"><i style={{width:v+
 export const Stat=({icon,label,value,hint}:{icon:ReactNode;label:string;value:string|number;hint?:string})=><div className="card stat"><span className="ico">{icon}</span><b>{value}</b><span>{label}</span>{hint&&<small>{hint}</small>}</div>;
 export const AddInline=({ph,onAdd}:{ph:string;onAdd:(v:string)=>void})=><form className="row" onSubmit={e=>{const form=e.currentTarget;const f=fd(e);if(f.v.trim())onAdd(f.v.trim());form.reset()}}><input name="v" placeholder={ph}/><button className="btn sm">Adicionar</button></form>;
 export const Empty=({text}:{text:string})=><div className="empty">{text}</div>;
+import {getState} from '../store';
+export const toast=(m:string)=>{if(getState().prefs.notif===false)return;const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.append(d);setTimeout(()=>d.remove(),2200)};
