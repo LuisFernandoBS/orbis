@@ -1,0 +1,19 @@
+import {useState} from 'react';import {useNavigate} from 'react-router-dom';import {Sparkles,Trash2,Zap,Target} from 'lucide-react';
+import KNav from '../components/KNav';import {AddInline} from '../components/ui';import {set,uid,useStore} from '../store';import {generateTrail} from '../services/ai';
+interface D{goals:{id:string;name:string;subs:{id:string;name:string}[]}[]}
+export default function Trilha(){const s=useStore();const nav=useNavigate();const [mode,setMode]=useState<'auto'|'custom'>('auto');const [topic,setTopic]=useState('');const [level,setLevel]=useState('Iniciante');const [obj,setObj]=useState('');
+const [busy,setBusy]=useState(false);const [err,setErr]=useState('');const [d,setD]=useState<D|null>(null);const [target,setTarget]=useState('new');
+const gen=async()=>{setBusy(true);setErr('');try{const t=await generateTrail({topic,mode,level,objective:obj});setD({goals:t.goals.map(g=>({id:uid(),name:g.name,subs:g.subs.map(n=>({id:uid(),name:n}))}))})}catch(e){setErr((e as Error).message)}setBusy(false)};
+const ug=(id:string,fn:(g:D['goals'][0])=>D['goals'][0])=>setD(x=>x&&{goals:x.goals.map(g=>g.id===id?fn(g):g)});
+const approve=()=>{if(!d)return;const goals=d.goals.filter(g=>g.name.trim()).map(g=>({id:uid(),name:g.name,done:false,subs:g.subs.filter(y=>y.name.trim()).map(y=>({id:uid(),name:y.name,done:false}))}));
+set(st=>({...st,subjects:target==='new'?[...st.subjects,{id:uid(),name:topic.trim()||'Novo assunto',goals}]:st.subjects.map(x=>x.id===target?{...x,goals:[...x.goals,...goals]}:x)}));nav('/conhecimento')};
+return <><KNav/><h1>Trilha com IA</h1><p className="sub">Nada é cadastrado sem a sua aprovação.</p>
+<div className="row"><button className={'btn '+(mode==='auto'?'':'ghost')} onClick={()=>setMode('auto')}><Zap size={16}/>Automática</button><button className={'btn '+(mode==='custom'?'':'ghost')} onClick={()=>setMode('custom')}><Target size={16}/>Personalizada</button></div>
+<form className="card form" onSubmit={e=>{e.preventDefault();gen()}}><label>Assunto<input required value={topic} onChange={e=>setTopic(e.target.value)} placeholder="Ex: React, AWS…"/></label>
+{mode==='custom'&&<><label>Nível atual<select value={level} onChange={e=>setLevel(e.target.value)}><option>Iniciante</option><option>Intermediário</option><option>Avançado</option></select></label><label>Objetivo<input value={obj} onChange={e=>setObj(e.target.value)} placeholder="Ex: conseguir vaga sênior"/></label></>}
+<div className="row end"><button className="btn" disabled={busy}><Sparkles size={16}/>{busy?'Gerando…':'Gerar trilha'}</button></div>{err&&<small style={{color:'#ef6b73',gridColumn:'1/-1'}}>{err}</small>}</form>
+{d&&<div className="card"><h3>Revisão da trilha</h3>{d.goals.map(g=><div key={g.id} className="mt"><div className="row"><input value={g.name} onChange={e=>ug(g.id,h=>({...h,name:e.target.value}))}/><button className="ib" aria-label="Remover meta" onClick={()=>setD(x=>x&&{goals:x.goals.filter(h=>h.id!==g.id)})}><Trash2 size={16}/></button></div>
+<div className="tree">{g.subs.map(y=><div key={y.id} className="row"><input value={y.name} onChange={e=>ug(g.id,h=>({...h,subs:h.subs.map(z=>z.id===y.id?{...z,name:e.target.value}:z)}))}/><button className="ib" aria-label="Remover subtema" onClick={()=>ug(g.id,h=>({...h,subs:h.subs.filter(z=>z.id!==y.id)}))}><Trash2 size={14}/></button></div>)}
+<AddInline ph="Adicionar subtema" onAdd={v=>ug(g.id,h=>({...h,subs:[...h.subs,{id:uid(),name:v}]}))}/></div></div>)}
+<AddInline ph="Adicionar meta" onAdd={v=>setD(x=>x&&{goals:[...x.goals,{id:uid(),name:v,subs:[]}]})}/>
+<div className="row end"><select value={target} onChange={e=>setTarget(e.target.value)}><option value="new">Novo assunto: {topic||'…'}</option>{s.subjects.map(x=><option key={x.id} value={x.id}>Adicionar a {x.name}</option>)}</select><button className="btn" onClick={approve}>Aprovar e importar</button><button className="btn ghost" onClick={()=>setD(null)}>Descartar</button></div></div>}</>}

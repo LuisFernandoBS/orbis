@@ -1,0 +1,25 @@
+import {useState} from 'react';import {Plus,Pencil,Trash2,Repeat,Wallet} from 'lucide-react';import {PieChart,Pie,Cell,BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer} from 'recharts';
+import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd} from '../components/ui';import {brl,monthOcc,today} from '../utils';import type {Expense,Rec} from '../types';
+const COL:Record<string,string>={fixa:'#8B5CF6',variavel:'#42D6D0',eventual:'#F0B86E'};const CATS=['Moradia','Utilities','Alimentação','Limpeza','Manutenção','Móveis','Eletrodomésticos'];
+export default function Despesas(){const s=useStore();const [ym,setYm]=useState(today().slice(0,7));const [m,setM]=useState<{id?:string}|null>(null);const [q,setQ]=useState('');
+const all=monthOcc(s.expenses,ym),list=all.filter(x=>x.e.name.toLowerCase().includes(q.toLowerCase()));
+const sum=(k?:string)=>all.filter(x=>!k||x.e.kind===k).reduce((a,x)=>a+x.e.value,0);
+const byKind=['fixa','variavel','eventual'].map(k=>({name:k,value:sum(k)}));
+const cat=Object.entries(all.reduce((a,x)=>({...a,[x.e.category]:(a[x.e.category]??0)+x.e.value}),{} as Record<string,number>)).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);
+return <><div className="between"><div><h1>Despesas</h1><p className="sub">Registre e analise seus gastos</p></div><button className="btn" onClick={()=>setM({})}><Plus size={16}/>Nova</button></div>
+<div className="row"><input type="month" value={ym} onChange={e=>setYm(e.target.value)}/><input placeholder="Buscar…" value={q} onChange={e=>setQ(e.target.value)}/></div>
+<div className="grid"><Stat icon={<Wallet size={18}/>} label="Total do mês" value={brl(sum())}/>{byKind.map(k=><Stat key={k.name} icon={<Repeat size={18}/>} label={'Gastos '+k.name+'s'} value={brl(k.value)}/>)}</div>
+<div className="two"><div className="card"><h3>Por tipo</h3><div style={{height:200}}><ResponsiveContainer><PieChart><Pie data={byKind} dataKey="value" innerRadius={50} outerRadius={80}>{byKind.map(k=><Cell key={k.name} fill={COL[k.name]}/>)}</Pie><Tooltip formatter={(v:number)=>brl(v)}/></PieChart></ResponsiveContainer></div></div>
+<div className="card"><h3>Por categoria</h3><div style={{height:200}}><ResponsiveContainer><BarChart data={cat} layout="vertical"><XAxis type="number" hide/><YAxis type="category" dataKey="name" width={90} stroke="#989AAF" fontSize={12}/><Tooltip formatter={(v:number)=>brl(v)}/><Bar dataKey="value" fill="#8B5CF6" radius={4}/></BarChart></ResponsiveContainer></div></div></div>
+{list.length?list.map(({e,date},i)=><div key={e.id+date+i} className="card item between"><div><b>{e.name}</b> <span className="badge" style={{color:COL[e.kind]}}>{e.kind}</span>{e.rec!=='none'&&<span className="badge"><Repeat size={10}/> {e.rec}</span>}<br/><small>{e.category} · {date.split('-').reverse().join('/')}</small></div>
+<div className="row"><b>{brl(e.value)}</b><button className="ib" aria-label="Editar" onClick={()=>setM({id:e.id})}><Pencil size={16}/></button><button className="ib" aria-label="Excluir" onClick={()=>confirm('Excluir esta despesa (e todas as suas recorrências)?')&&set(st=>({...st,expenses:st.expenses.filter(x=>x.id!==e.id)}))}><Trash2 size={16}/></button></div></div>):<Empty text="Nenhuma despesa neste período."/>}
+{m&&<Form id={m.id} onClose={()=>setM(null)}/>}</>}
+function Form({id,onClose}:{id?:string;onClose:()=>void}){const s=useStore();const e=s.expenses.find(x=>x.id===id);const cats=[...new Set([...CATS,...s.expenses.map(x=>x.category)])];
+return <Modal title={e?'Editar despesa':'Nova despesa'} onClose={onClose}><form className="form" onSubmit={ev=>{const f=fd(ev);const n:Expense={id:e?.id??uid(),name:f.name,value:+f.value,category:f.category,kind:f.kind as Expense['kind'],date:f.date,desc:f.desc,rec:f.rec as Rec};
+set(st=>({...st,expenses:e?st.expenses.map(x=>x.id===n.id?n:x):[...st.expenses,n]}));onClose()}}>
+<label>Nome<input name="name" required defaultValue={e?.name}/></label><label>Valor (R$)<input name="value" type="number" step="0.01" min="0" required defaultValue={e?.value}/></label>
+<label>Data (início)<input name="date" type="date" required defaultValue={e?.date??today()}/></label>
+<label>Tipo<select name="kind" defaultValue={e?.kind??'variavel'}><option value="fixa">Fixa</option><option value="variavel">Variável</option><option value="eventual">Eventual</option></select></label>
+<label>Categoria (digite para criar nova)<input name="category" list="cats" required defaultValue={e?.category??'Alimentação'}/><datalist id="cats">{cats.map(c=><option key={c}>{c}</option>)}</datalist></label>
+<label>Frequência<select name="rec" defaultValue={e?.rec??'none'}><option value="none">Lançamento único</option><option value="weekly">Semanal</option><option value="biweekly">Quinzenal</option><option value="monthly">Mensal</option><option value="yearly">Anual</option></select></label>
+<label>Descrição<textarea name="desc" defaultValue={e?.desc}/></label><div className="row end"><button type="button" className="btn ghost" onClick={onClose}>Cancelar</button><button className="btn">Salvar</button></div></form></Modal>}
