@@ -24,7 +24,7 @@ A trilha chama `/api/trail` (`api/trail.ts`), que lê `GEMINI_API_KEY` no servid
 ## Supabase (persistência de todos os dados)
 1. Crie um projeto no Supabase e rode `supabase/schema.sql` no SQL Editor (tabela `orbis_state` com RLS: cada usuário só acessa a própria linha).
 2. Em Authentication → Providers, mantenha Email habilitado (desative "Confirm email" se quiser entrar sem confirmar).
-3. Variáveis (Vercel e `.env.local`): `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (chave **anon/publishable**; é pública e protegida pelo RLS). Nunca use a `service_role` no front.
+3. Configure `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` somente no ambiente do servidor (Vercel e `.env.local` usado pelo `vercel dev`). A autenticação, leitura e gravação do Supabase passam pelas APIs do servidor; nenhuma chave Supabase é necessária no navegador.
 4. Primeiro login: se a nuvem estiver vazia, os dados locais/demo são enviados; nos logins seguintes a nuvem prevalece.
 Funcionamento: todo o estado fica em uma linha `jsonb` por usuário, gravada ~0,8s após cada alteração, com cache em localStorage. Conflito entre dispositivos: vale a última gravação.
-A rota `/api/trail` agora exige login (valida o token no Supabase).
+As rotas `/api/state` e `/api/trail` validam o login no Supabase antes de operar. A rota `/api/auth` também processa login, cadastro e renovação de sessão no servidor.
