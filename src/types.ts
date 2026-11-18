@@ -9,5 +9,12 @@ export interface Goal{id:string;name:string;done:boolean;subs:Sub[]}
 export interface Subject{id:string;name:string;goals:Goal[]}
 export type MType='video'|'artigo'|'pdf'|'curso'|'doc'|'github';export type MStatus='pendente'|'estudando'|'estudado';
 export interface Material{id:string;name:string;url:string;type:MType;status:MStatus;links:string[]}
+export type ObjStatus='nao-iniciado'|'em-andamento'|'concluido'|'arquivado';
+export type TaskStatus='pendente'|'em-andamento'|'concluida';
+export interface Subtask{id:string;name:string;done:boolean}
+export interface Task{id:string;objectiveId:string;name:string;desc:string;priority:Priority;due:string|null;status:TaskStatus;subs:Subtask[];createdAt:string}
+export interface Objective{id:string;name:string;desc:string;category:string;priority:Priority;startDate:string;dueDate:string|null;status:ObjStatus;favorite:boolean;archived:boolean;completedAt:string|null;createdAt:string}
+export interface PlanningActivity{id:string;type:string;desc:string;date:string;objectiveId:string|null}
+export interface PlanningState{objectives:Objective[];tasks:Task[];customCategories:string[];activities:PlanningActivity[]}
 export interface Prefs{theme:'dark'|'light';accent?:string;compact?:boolean;anim?:boolean;labels?:boolean;notif?:boolean;autosave?:boolean;name?:string;email?:string}
-export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];prefs:Prefs}
+export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];planning:PlanningState;prefs:Prefs}

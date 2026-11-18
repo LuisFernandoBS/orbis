@@ -21,4 +21,21 @@ expenses:[
 subjects:[
 {id:'s1',name:'Inteligência Artificial',goals:[{id:'g1',name:'RAG',done:false,subs:[{id:'a',name:'Embeddings',done:true},{id:'b',name:'Vector Databases',done:true},{id:'c',name:'Chunking',done:false},{id:'d',name:'Retrieval e Reranking',done:false}]},{id:'g2',name:'LLMs',done:false,subs:[]}]},
 {id:'s2',name:'Java e Spring Boot',goals:[{id:'g3',name:'Spring Core',done:false,subs:[{id:'e',name:'Injeção de dependência',done:true},{id:'f',name:'Spring Data',done:false}]}]},
-{id:'s3',name:'AWS',goals:[{id:'g4',name:'Fundamentos',done:true,subs:[]}]}]});
+{id:'s3',name:'AWS',goals:[{id:'g4',name:'Fundamentos',done:true,subs:[]}]}],
+planning:{
+objectives:[
+{id:'p1',name:'Mudar de apartamento',desc:'Escolher e assinar novo apartamento',category:'Pessoal',priority:'alta',startDate:d(20),dueDate:d(-10),status:'em-andamento',favorite:false,archived:false,completedAt:null,createdAt:d(40)},
+{id:'p2',name:'Concluir certificação em IA',desc:'Finalizar trilha e fazer exame',category:'Estudos',priority:'media',startDate:d(40),dueDate:d(-15),status:'em-andamento',favorite:true,archived:false,completedAt:null,createdAt:d(60)},
+{id:'p3',name:'Organizar finanças',desc:'Revisar orçamento e investimentos',category:'Financeiro',priority:'baixa',startDate:d(40),dueDate:null,status:'nao-iniciado',favorite:false,archived:false,completedAt:null,createdAt:d(60)}],
+tasks:[
+{id:'t1',objectiveId:'p1',name:'Visitar 3 apartamentos',desc:'',priority:'alta',due:d(-8),status:'em-andamento',subs:[{id:'ps1',name:'Apartamento A - Zona Sul',done:true},{id:'ps2',name:'Apartamento B - Centro',done:false}],createdAt:d(30)},
+{id:'t2',objectiveId:'p1',name:'Aprovar crédito',desc:'',priority:'alta',due:d(-6),status:'concluida',subs:[],createdAt:d(25)},
+{id:'t3',objectiveId:'p2',name:'Revisar embeddings',desc:'',priority:'media',due:d(-3),status:'concluida',subs:[{id:'ps3',name:'Rever chunking',done:true}],createdAt:d(20)},
+{id:'t4',objectiveId:'p2',name:'Fazer exame',desc:'',priority:'alta',due:d(5),status:'pendente',subs:[],createdAt:d(15)},
+{id:'t5',objectiveId:'p3',name:'Revisar orçamento',desc:'',priority:'baixa',due:null,status:'pendente',subs:[],createdAt:d(10)}],
+customCategories:['Pessoal','Profissional','Financeiro','Estudos','Casa','Saúde e bem-estar','Outros'],
+activities:[
+{id:'pa1',type:'objetivo-criado',desc:'Objetivo "Mudar de apartamento" criado',date:d(40),objectiveId:'p1'},
+{id:'pa2',type:'tarefa-criada',desc:'Tarefa "Visitar 3 apartamentos" criada',date:d(30),objectiveId:'p1'},
+{id:'pa3',type:'subtarefa-concluida',desc:'Subtarefa "Apartamento A" concluída',date:d(12),objectiveId:'p1'},
+{id:'pa4',type:'objetivo-criado',desc:'Objetivo "Concluir certificação em IA" criado',date:d(60),objectiveId:'p2'}]}});
