@@ -14,6 +14,7 @@ const sec=(ns:N[],p:string):N|undefined=>{for(const n of ns)if(n.kids&&p.startsW
 export default function App(){const s=useStore();const p=usePrefs();const loc=useLocation();const [col,setCol]=useState(false);const [o,setO]=useState<Record<string,boolean>>({});const T=tree(s.rooms);
 useEffect(()=>{const r=document.documentElement;r.dataset.theme=p.theme;r.dataset.compact=String(p.compact);r.dataset.anim=p.anim?'on':'off';
 if(p.accent==='#8B5CF6'){r.style.removeProperty('--pri');r.style.removeProperty('--lav')}else{r.style.setProperty('--pri',p.accent);r.style.setProperty('--lav',p.accent)}},[p.theme,p.compact,p.anim,p.accent]);
+useEffect(()=>{document.querySelector('.subnav .tab.active')?.scrollIntoView({inline:'center',block:'nearest'})},[loc.pathname,s.rooms.length]);
 useEffect(()=>{const h=()=>toast('Falha ao sincronizar com o Supabase');window.addEventListener('orbis:sync-error',h);return()=>window.removeEventListener('orbis:sync-error',h)},[]);
 const R=(n:N,d:number):React.ReactNode=>{const I=n.i,pad={paddingLeft:12+d*14};
 if(!n.kids)return <NavLink key={n.k} to={n.to!} end className="link" style={pad}><I size={18}/><span>{n.l}</span></NavLink>;

@@ -12,3 +12,4 @@ if(e.rec==='weekly')d.setUTCDate(b.getUTCDate()+7*n);else if(e.rec==='biweekly')
 const s=d.toISOString().slice(0,10);if(s>to)break;if(s>=from)r.push(s)}return r};
 export const monthOcc=(es:Expense[],ym:string)=>es.flatMap(e=>occ(e,ym+'-01',ym+'-31').map(date=>({e,date}))).sort((a,b)=>b.date.localeCompare(a.date));
 export const lastMonths=(n:number)=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-(n-1-i));return d.toISOString().slice(0,7)});
+export const L:Record<string,string>={alta:'Alta',media:'Média',baixa:'Baixa',desejado:'Desejado',pesquisando:'Pesquisando',comprado:'Comprado',fixa:'Fixa',variavel:'Variável',eventual:'Eventual',none:'Única',weekly:'Semanal',biweekly:'Quinzenal',monthly:'Mensal',yearly:'Anual'};
