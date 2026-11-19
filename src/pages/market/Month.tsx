@@ -85,7 +85,7 @@ export default function MarketMonth(){
               <button className="mchk" aria-label="Marcar como comprado" onClick={()=>{set(st=>({...st,market:purchaseItem(st.market,i.id)}));toast(`"${i.name}" comprado`)}}>
                 <div className="chk-circle"><Check size={14}/></div>
               </button>
-              <div style={{display:'grid',minWidth:0,flex:1}} onClick={()=>setEditId(i.id)} role="button" tabIndex={0}>
+              <div style={{display:'grid',minWidth:0,flex:1,gap:7}} onClick={()=>setEditId(i.id)} role="button" tabIndex={0}>
                 <span className="m-name"><b>{i.name}</b>{qtyStr&&<small className="m-qty"> · {qtyStr}</small>}</span>
                 <div className="row" style={{margin:0,gap:6}}>
                   {i.category&&<span className="badge cat" style={catStyle(i.category)}>{i.category}</span>}
