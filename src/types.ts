@@ -11,10 +11,15 @@ export type MType='video'|'artigo'|'pdf'|'curso'|'doc'|'github';export type MSta
 export interface Material{id:string;name:string;url:string;type:MType;status:MStatus;links:string[]}
 export type ObjStatus='nao-iniciado'|'em-andamento'|'concluido'|'arquivado';
 export type TaskStatus='pendente'|'em-andamento'|'concluida';
+export type MarketPeriod='none'|'current_month';
 export interface Subtask{id:string;name:string;done:boolean}
 export interface Task{id:string;objectiveId:string;name:string;desc:string;priority:Priority;due:string|null;status:TaskStatus;subs:Subtask[];createdAt:string}
+export interface FrequentItem{id:string;name:string;category:string;defaultQuantity:number|null;defaultUnit:string|null;createdAt:string;updatedAt:string}
+export interface ShoppingItem{id:string;name:string;quantity:number|null;unit:string|null;category:string;notes:string;period:MarketPeriod;periodMonth:string|null;frequentItemId:string|null;createdAt:string;updatedAt:string}
+export interface PurchaseHistory{id:string;name:string;quantity:number|null;unit:string|null;category:string;frequentItemId:string|null;originalItemId:string|null;purchasedAt:string}
+export interface MarketState{frequentItems:FrequentItem[];shoppingItems:ShoppingItem[];purchaseHistory:PurchaseHistory[]}
 export interface Objective{id:string;name:string;desc:string;category:string;priority:Priority;startDate:string;dueDate:string|null;status:ObjStatus;favorite:boolean;archived:boolean;completedAt:string|null;createdAt:string}
 export interface PlanningActivity{id:string;type:string;desc:string;date:string;objectiveId:string|null}
 export interface PlanningState{objectives:Objective[];tasks:Task[];customCategories:string[];activities:PlanningActivity[]}
 export interface Prefs{theme:'dark'|'light';accent?:string;compact?:boolean;anim?:boolean;labels?:boolean;notif?:boolean;autosave?:boolean;name?:string;email?:string}
-export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];planning:PlanningState;prefs:Prefs}
+export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];planning:PlanningState;market:MarketState;prefs:Prefs}

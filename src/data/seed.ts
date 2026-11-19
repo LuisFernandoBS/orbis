@@ -38,4 +38,23 @@ activities:[
 {id:'pa1',type:'objetivo-criado',desc:'Objetivo "Mudar de apartamento" criado',date:d(40),objectiveId:'p1'},
 {id:'pa2',type:'tarefa-criada',desc:'Tarefa "Visitar 3 apartamentos" criada',date:d(30),objectiveId:'p1'},
 {id:'pa3',type:'subtarefa-concluida',desc:'Subtarefa "Apartamento A" concluída',date:d(12),objectiveId:'p1'},
-{id:'pa4',type:'objetivo-criado',desc:'Objetivo "Concluir certificação em IA" criado',date:d(60),objectiveId:'p2'}]}});
+{id:'pa4',type:'objetivo-criado',desc:'Objetivo "Concluir certificação em IA" criado',date:d(60),objectiveId:'p2'}]},
+market:{
+frequentItems:[
+{id:'mf1',name:'Arroz',category:'Alimentos',defaultQuantity:2,defaultUnit:'kg',createdAt:d(30),updatedAt:d(30)},
+{id:'mf2',name:'Feijão',category:'Alimentos',defaultQuantity:1,defaultUnit:'kg',createdAt:d(30),updatedAt:d(30)},
+{id:'mf3',name:'Café',category:'Bebidas',defaultQuantity:500,defaultUnit:'g',createdAt:d(25),updatedAt:d(25)},
+{id:'mf4',name:'Leite',category:'Alimentos',defaultQuantity:6,defaultUnit:'L',createdAt:d(20),updatedAt:d(20)},
+{id:'mf5',name:'Ovos',category:'Alimentos',defaultQuantity:1,defaultUnit:'dz',createdAt:d(15),updatedAt:d(15)},
+{id:'mf6',name:'Sabão em pó',category:'Limpeza',defaultQuantity:1,defaultUnit:'pct',createdAt:d(10),updatedAt:d(10)},
+{id:'mf7',name:'Detergente',category:'Limpeza',defaultQuantity:3,defaultUnit:'un',createdAt:d(10),updatedAt:d(10)},
+{id:'mf8',name:'Papel higiênico',category:'Higiene pessoal',defaultQuantity:12,defaultUnit:'un',createdAt:d(5),updatedAt:d(5)}],
+shoppingItems:[
+{id:'ms1',name:'Arroz',quantity:2,unit:'kg',category:'Alimentos',notes:'',period:'current_month',periodMonth:d(0).slice(0,7),frequentItemId:'mf1',createdAt:d(3),updatedAt:d(3)},
+{id:'ms2',name:'Café',quantity:500,unit:'g',category:'Bebidas',notes:'Chão, não solúvel',period:'current_month',periodMonth:d(0).slice(0,7),frequentItemId:'mf3',createdAt:d(2),updatedAt:d(2)},
+{id:'ms3',name:'Sabão em pó',quantity:1,unit:'pct',category:'Limpeza',notes:'',period:'none',periodMonth:null,frequentItemId:'mf6',createdAt:d(1),updatedAt:d(1)},
+{id:'ms4',name:'Vinho tinto',quantity:2,unit:'un',category:'Bebidas',notes:'Para o jantar de sábado',period:'none',periodMonth:null,frequentItemId:null,createdAt:d(1),updatedAt:d(1)}],
+purchaseHistory:[
+{id:'mp1',name:'Leite',quantity:6,unit:'L',category:'Alimentos',frequentItemId:'mf4',originalItemId:null,purchasedAt:d(4)+'T10:30:00.000Z'},
+{id:'mp2',name:'Feijão',quantity:1,unit:'kg',category:'Alimentos',frequentItemId:'mf2',originalItemId:null,purchasedAt:d(9)+'T14:00:00.000Z'},
+{id:'mp3',name:'Detergente',quantity:2,unit:'un',category:'Limpeza',frequentItemId:'mf7',originalItemId:null,purchasedAt:d(16)+'T09:15:00.000Z'}]}});
