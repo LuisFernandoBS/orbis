@@ -54,7 +54,7 @@ export default function Dashboard(){
     </div>
 
     {/* Indicadores Principais (4 cards) */}
-    <div className="grid" style={{gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:14}}>
+    <div className="dash-stats">
       {/* 1. Itens Planejados */}
       <div className="card" style={{margin:0,padding:16}}>
         <div className="between" style={{marginBottom:10}}>
@@ -108,8 +108,8 @@ export default function Dashboard(){
       </div>
     </div>
 
-    {/* Gráficos (2 colunas) */}
-    <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',gap:16}}>
+    {/* Gráficos (2 colunas no desktop, 1 coluna no mobile) */}
+    <div className="dash-charts">
       <div className="card" style={{margin:0,padding:20}}>
         <div className="between" style={{marginBottom:4}}>
           <div>
@@ -158,12 +158,12 @@ export default function Dashboard(){
       </div>
     </div>
 
-    {/* Ações Rápidas (Horizontal) */}
+    {/* Ações Rápidas (4 colunas desktop, 2 colunas mobile) */}
     <div className="card" style={{margin:0,padding:16}}>
       <h3 style={{margin:'0 0 12px 0',fontSize:'1.05rem',display:'flex',alignItems:'center',gap:8}}>
         <Sparkles size={18} style={{color:'var(--amb)'}}/> Ações Rápidas
       </h3>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:12}}>
+      <div className="dash-actions">
         {[
           ['/casa/compras',ShoppingCart,'Ver compras planejadas'],
           ['/casa/despesas/lista',Wallet,'Registrar despesa'],
@@ -184,8 +184,8 @@ export default function Dashboard(){
       </div>
     </div>
 
-    {/* Grid Inferior (3 colunas) */}
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16}}>
+    {/* Grid Inferior (3 colunas desktop, 1 coluna mobile) */}
+    <div className="dash-bottom">
 
       {/* 1. Minha casa */}
       <div className="card" style={{margin:0,padding:20,display:'flex',flexDirection:'column'}}>
@@ -274,7 +274,7 @@ export default function Dashboard(){
               </div>;
             })
           ):(
-            <p style={{color:'var(--mut)',fontSize:'0.85rem',margin:0}}>Nenhum item pendente de alta prioridade.</p>
+            <p style={{color:'var(--mut)',fontSize:'0.85rem',margin:0}}>{'Nenhum item pendente de alta prioridade.'}</p>
           )}
         </div>
         <Link to="/casa/compras" className="link-more" style={{marginTop:12}}>Ver todas as prioridades ›</Link>

@@ -117,3 +117,19 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
   .phead{flex-direction:column;align-items:stretch;gap:10px}
   .phead .row{justify-content:flex-start}
 }
+
+.dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.dash-charts{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.dash-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dash-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+@media(max-width:1023px){
+  .dash-charts{grid-template-columns:1fr}
+  .dash-bottom{grid-template-columns:1fr}
+}
+@media(max-width:767px){
+  .dash-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .dash-charts{grid-template-columns:1fr}
+  .dash-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .dash-bottom{grid-template-columns:1fr;gap:12px}
+}
