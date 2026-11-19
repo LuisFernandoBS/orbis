@@ -111,3 +111,9 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
 .m-name{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .m-qty{color:var(--mut);font-weight:400}
 .m-note{color:var(--mut);font-size:.85rem}
+@media(max-width:767px){
+  .c-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .c-main-grid{grid-template-columns:1fr!important}
+  .phead{flex-direction:column;align-items:stretch;gap:10px}
+  .phead .row{justify-content:flex-start}
+}

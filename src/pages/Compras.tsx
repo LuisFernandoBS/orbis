@@ -47,7 +47,7 @@ export default function Compras(){
         </div>
 
         {/* Indicadores principais (4 cards) */}
-        <div className="grid" style={{gridTemplateColumns:'repeat(4,minmax(0,1fr))',marginBottom:20}}>
+        <div className="grid c-stats-grid" style={{gridTemplateColumns:'repeat(4,minmax(0,1fr))',marginBottom:20}}>
           <Stat icon={<ShoppingCart size={18}/>} label="Itens planejados" value={pend.length}/>
           <Stat icon={<CheckCircle2 size={18}/>} label="Comprados" value={bought.length}/>
           <Stat icon={<Wallet size={18}/>} label="Orçamento estimado" value={brl(totalEstimated)}/>
@@ -55,7 +55,7 @@ export default function Compras(){
         </div>
 
         {/* Área principal — duas colunas */}
-        <div style={{display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:20,alignItems:'start'}}>
+        <div className="c-main-grid" style={{display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:20,alignItems:'start'}}>
 
           {/* Coluna Esquerda */}
           <div style={{display:'grid',gap:20}}>
@@ -86,7 +86,7 @@ export default function Compras(){
                 </h3>
                 <small style={{color:'var(--mut)'}}>{s.rooms.length} cômodos</small>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:12}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:12}}>
                 {s.rooms.map(r=>{
                   const rItems=s.items.filter(i=>i.roomId===r.id);
                   const rBought=rItems.filter(i=>i.status==='comprado').length;
