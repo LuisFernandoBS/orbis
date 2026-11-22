@@ -360,6 +360,7 @@ function ProductDiscovery({room,onClose}:{room:Room;onClose:()=>void}){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [activeCategory,setActiveCategory]=useState('');
+  const [newProductNames,setNewProductNames]=useState<string[]>([]);
 
   const generate=async(more=false)=>{
     setBusy(true);setError('');
@@ -367,6 +368,13 @@ function ProductDiscovery({room,onClose}:{room:Room;onClose:()=>void}){
       const existing=s.items.filter(i=>i.roomId===room.id).map(i=>i.name);
       const presented=data?.categories.flatMap(c=>c.products.map(p=>p.name))??[];
       const result=await discoverProducts({room:room.name,roomId:room.id,existingProducts:existing,avoidNames:presented,count:more?12:18});
+      if(more){
+        const alreadyKnown=new Set([...existing,...presented].map(normProductName));
+        const freshNames=result.categories.flatMap(c=>c.products.map(p=>p.name))
+          .filter(name=>name&&!alreadyKnown.has(normProductName(name)))
+          .filter((name,index,names)=>names.findIndex(other=>normProductName(other)===normProductName(name))===index);
+        setNewProductNames(freshNames.map(normProductName));
+      }else setNewProductNames([]);
       setData(current=>{
         if(!more||!current)return result;
         const merged=result.categories.map(category=>{
@@ -405,8 +413,8 @@ function ProductDiscovery({room,onClose}:{room:Room;onClose:()=>void}){
   const categories=data?.categories??[];
   const selected=categories.find(c=>c.name===activeCategory)??categories[0];
   return <Modal full title={`Descobrir produtos — ${room.name}`} onClose={onClose} footer={
-    <button className="btn" onClick={()=>generate(true)} disabled={busy}>
-      {busy?<LoaderCircle size={16}/>:<RefreshCw size={16}/>} Gerar mais sugestões
+    <button className="btn ai-generate-more" onClick={()=>generate(true)} disabled={busy} aria-live="polite">
+      {busy?<LoaderCircle className="ai-spin" size={16}/>:<RefreshCw size={16}/>} {busy?'Gerando sugestões…':'Gerar mais sugestões'}
     </button>
   }>
     <div className="ai-discover">
@@ -420,10 +428,14 @@ function ProductDiscovery({room,onClose}:{room:Room;onClose:()=>void}){
         <div className="ai-product-grid">
           {selected.products.map(product=>{
             const added=inList(product.name);
+            const isNew=newProductNames.includes(normProductName(product.name));
             return <article className="ai-product-card" key={`${selected.name}-${normProductName(product.name)}`}>
               <div className="ai-product-placeholder"><ImageIcon size={24}/><small>Produto {room.name}</small></div>
               <div className="ai-product-body">
-                <span className="ai-category-label">{selected.name}</span>
+                <div className="ai-product-meta">
+                  <span className="ai-category-label">{selected.name}</span>
+                  {isNew&&<span className="ai-new-badge">Novo</span>}
+                </div>
                 <h3>{product.name}</h3>
                 <p>{product.description}</p>
                 {product.reason&&<small className="ai-reason">{product.reason}</small>}

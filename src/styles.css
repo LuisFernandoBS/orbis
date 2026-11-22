@@ -207,12 +207,15 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
 }
 .ai-product-placeholder small{color:var(--mut)}
 .ai-product-body{display:flex;flex:1;flex-direction:column;padding:14px}
+.ai-product-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .ai-category-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--aqua);font-weight:700}
+.ai-new-badge{flex:none;padding:2px 8px;border:1px solid rgba(66,214,208,.3);border-radius:999px;background:rgba(66,214,208,.12);color:var(--aqua);font-size:.7rem;font-weight:700}
 .ai-product-body h3{font-size:1rem;margin:6px 0 5px;overflow-wrap:anywhere}
 .ai-product-body p{margin:0 0 8px;color:var(--mut);font-size:.85rem}
 .ai-reason{display:block;margin:0 0 12px;color:var(--lav);font-size:.78rem}
 .ai-add-btn{width:100%;margin-top:auto}
 .ai-add-btn.added{background:rgba(66,214,208,.12);color:var(--aqua);border:1px solid rgba(66,214,208,.28);cursor:default}
+.ai-generate-more:disabled{opacity:.82;cursor:wait}
 
 @media(max-width:1023px){.ai-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:767px){
