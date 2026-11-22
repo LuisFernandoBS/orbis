@@ -1,8 +1,9 @@
-import type {Expense,Item,Subject} from './types';
+import type {Expense,Item,Offer,Subject} from './types';
 export const nodes=(ss:Subject[])=>{const m=new Map<string,{label:string;sid:string}>();ss.forEach(s=>{m.set(s.id,{label:s.name,sid:s.id});s.goals.forEach(g=>{m.set(g.id,{label:s.name+' → '+g.name,sid:s.id});g.subs.forEach(y=>m.set(y.id,{label:s.name+' → '+g.name+' → '+y.name,sid:s.id}))})});return m};
 export const brl=(n:number)=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export const today=()=>new Date().toISOString().slice(0,10);
-export const avg=(i:Item)=>{const s=i.offers.filter(o=>o.selected);return s.length?s.reduce((a,o)=>a+o.price,0)/s.length:0};
+export const offerTotal=(o:Offer)=>o.price+(o.frete??0);
+export const avg=(i:Item)=>{const s=i.offers.filter(o=>o.selected);return s.length?s.reduce((a,o)=>a+offerTotal(o),0)/s.length:0};
 /** Progresso: unidades folha concluídas / total. Meta com subtemas conta pelos subtemas; meta sem subtemas conta como 1 unidade. */
 export const progress=(s:Subject)=>{let t=0,d=0;s.goals.forEach(g=>{if(g.subs.length){t+=g.subs.length;d+=g.subs.filter(x=>x.done).length}else{t++;if(g.done)d++}});return{t,d,pct:t?Math.round(d/t*100):0}};
 /** Gera ocorrências de uma despesa (recorrente ou não) em [from,to], sem duplicar. */

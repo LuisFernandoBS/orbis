@@ -1,5 +1,5 @@
-import {useState,useEffect} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home} from 'lucide-react';
-import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,today,L} from '../utils';import type {Item,Priority} from '../types';
+import {useState,useEffect} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home,Pencil} from 'lucide-react';
+import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,offerTotal,today,L} from '../utils';import type {Item,Priority,Offer} from '../types';
 
 const ri:Record<string,any>={sala:Sofa,quarto:BedDouble,cozinha:CookingPot,banheiro:Bath};
 
@@ -240,9 +240,11 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
   const it=s.items.find(i=>i.id===id);
   const [buy,setBuy]=useState(false);
   const [ok,setOk]=useState(0);
+  const [editOffer,setEditOffer]=useState<Offer|null>(null);
   useEffect(()=>{if(buy)setTimeout(()=>document.getElementById('buyform')?.scrollIntoView({behavior:'smooth',block:'center'}),50)},[buy]);
   const upd=(fn:(i:Item)=>Item)=>set(st=>({...st,items:st.items.map(x=>x.id===id?fn(x):x)}));
-  const sel=it?.offers.filter(o=>o.selected)??[],prices=sel.map(o=>o.price);
+  const sel=it?.offers.filter(o=>o.selected)??[];
+  const totals=sel.map(offerTotal);
   const del=()=>{if(it&&confirm('Excluir item?')){set(st=>({...st,items:st.items.filter(x=>x.id!==it.id)}));toast('Item excluído');onClose()}};
   const footer=it?<><button type="button" className="btn dsolid icon" aria-label="Excluir item" onClick={del}><Trash2 size={18}/></button>{it.status!=='comprado'&&!buy&&<button type="button" className="btn ghost" onClick={()=>setBuy(true)}>Registrar compra</button>}<button form="itemform" className="btn">Salvar</button></>:<><button type="button" className="btn ghost" onClick={onClose}>Cancelar</button><button form="itemform" className="btn">Salvar</button></>;
   return <Modal full title={it?it.name:'Novo item'} onClose={onClose} footer={footer}>
@@ -254,9 +256,50 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
   {it?.status!=='comprado'&&<label>Status<select name="status" defaultValue={it?.status??'desejado'}><option value="desejado">Desejado</option><option value="pesquisando">Pesquisando</option></select></label>}
   <label>Cômodo<select name="room" defaultValue={it?.roomId??roomId??''}><option value="">Sem cômodo (desejos)</option>{s.rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
   </form>
-  {it&&<><h4>Ofertas</h4>{it.offers.map(o=><div key={o.id} className="card between"><label className="row"><input type="checkbox" checked={o.selected} onChange={()=>upd(x=>({...x,offers:x.offers.map(y=>y.id===o.id?{...y,selected:!y.selected}:y)}))}/><span><b>{o.name}</b><br/><small>{o.features} · {o.store} · {o.used?'usado':'novo'}</small></span></label><span className="row"><b className="price">{brl(o.price)}</b><button className="ib" aria-label="Remover oferta" onClick={()=>upd(x=>({...x,offers:x.offers.filter(y=>y.id!==o.id)}))}><Trash2 size={16}/></button></span></div>)}
-  {sel.length>0&&<div className="card">Média (selecionadas): <b>{brl(prices.reduce((a,b)=>a+b,0)/sel.length)}</b> · Menor: {brl(Math.min(...prices))} · Maior: {brl(Math.max(...prices))} · {sel.length} oferta(s)</div>}
-  <form key={ok} className="form" onSubmit={e=>{const f=fd(e);upd(x=>({...x,offers:[...x.offers,{id:uid(),name:f.name,features:f.features,price:+f.price,store:f.store,url:f.url,used:f.cond==='usado',date:today(),selected:true}]}));setOk(o=>o+1)}}>
-  <label>Produto<input name="name" required/></label><label>Características<input name="features"/></label><label>Preço (R$)<Money name="price" required/></label><label>Loja<input name="store"/></label><label>Link<input name="url" type="url"/></label><label>Condição<select name="cond"><option>novo</option><option>usado</option></select></label><div className="row end"><button className="btn sm">Adicionar oferta</button></div></form>
+  {it&&<><h4>Ofertas</h4>{it.offers.map(o=>{
+    const ot=offerTotal(o);
+    const hasFrete=o.frete!==undefined&&o.frete>0;
+    return <div key={o.id} className="card between">
+      <label className="row"><input type="checkbox" checked={o.selected} onChange={()=>upd(x=>({...x,offers:x.offers.map(y=>y.id===o.id?{...y,selected:!y.selected}:y)}))}/>
+      <span>
+        <b>{o.name}</b><br/>
+        <small>{o.features}{o.features?' · ':''}{o.store}{o.store?' · ':''}{o.used?'usado':'novo'}</small>
+      </span></label>
+      <span className="row" style={{alignItems:'center',gap:8}}>
+        <div style={{textAlign:'right'}}>
+          {hasFrete&&<div style={{fontSize:'0.75rem',color:'var(--mut)'}}>Prod: {brl(o.price)} + Frete: {brl(o.frete!)}</div>}
+          <b className="price" style={{color:'var(--aqua)'}}>{brl(ot)}</b>
+        </div>
+        <button className="ib" aria-label="Editar oferta" onClick={()=>setEditOffer(o)}><Pencil size={16}/></button>
+        <button className="ib" aria-label="Remover oferta" onClick={()=>upd(x=>({...x,offers:x.offers.filter(y=>y.id!==o.id)}))}><Trash2 size={16}/></button>
+      </span>
+    </div>;
+  })}
+  {sel.length>0&&<div className="card">Média (selecionadas): <b>{brl(totals.reduce((a,b)=>a+b,0)/sel.length)}</b> · Menor: {brl(Math.min(...totals))} · Maior: {brl(Math.max(...totals))} · {sel.length} oferta(s)</div>}
+  <form key={ok+(editOffer?.id??'new')} className="form" onSubmit={e=>{
+    const f=fd(e);
+    const price=+f.price||0;
+    const frete=f.frete?+f.frete:undefined;
+    if(editOffer){
+      upd(x=>({...x,offers:x.offers.map(y=>y.id===editOffer.id?{...y,name:f.name,features:f.features,price,frete,store:f.store,url:f.url,used:f.cond==='usado'}:y)}));
+      setEditOffer(null);
+    }else{
+      upd(x=>({...x,offers:[...x.offers,{id:uid(),name:f.name,features:f.features,price,frete,store:f.store,url:f.url,used:f.cond==='usado',date:today(),selected:true}]}));
+    }
+    setOk(o=>o+1);
+  }}>
+    <h4>{editOffer?'Editar oferta':'Adicionar oferta'}</h4>
+    <label>Produto<input name="name" required defaultValue={editOffer?.name}/></label>
+    <label>Características<input name="features" defaultValue={editOffer?.features}/></label>
+    <label>Preço do produto (R$)<Money name="price" required defaultValue={editOffer?.price}/></label>
+    <label>Frete (R$ — opcional)<Money name="frete" defaultValue={editOffer?.frete}/></label>
+    <label>Loja<input name="store" defaultValue={editOffer?.store}/></label>
+    <label>Link<input name="url" type="url" defaultValue={editOffer?.url}/></label>
+    <label>Condição<select name="cond" defaultValue={editOffer?.used?'usado':'novo'}><option>novo</option><option>usado</option></select></label>
+    <div className="row end" style={{gap:8}}>
+      {editOffer&&<button type="button" className="btn ghost sm" onClick={()=>setEditOffer(null)}>Cancelar</button>}
+      <button className="btn sm">{editOffer?'Atualizar oferta':'Adicionar oferta'}</button>
+    </div>
+  </form>
   {it.status!=='comprado'&&(buy?<form id="buyform" className="form" onSubmit={e=>{const f=fd(e);upd(x=>({...x,status:'comprado',purchase:{price:+f.price,store:f.store,date:f.date,notes:f.notes}}));toast('Compra registrada');onClose()}}><label>Valor pago (R$)<Money name="price" required defaultValue={avg(it)}/></label><label>Loja<input name="store"/></label><label>Data<input name="date" type="date" defaultValue={today()}/></label><label>Observações<input name="notes"/></label><div className="row end"><button className="btn">Confirmar compra</button></div></form>:null)}
   </>}</Modal>}
