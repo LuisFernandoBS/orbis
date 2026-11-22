@@ -22,6 +22,8 @@ const prompt=`Você é um assistente de compras práticas para casa.
 Sugira ${count} produtos úteis e reais para o ambiente chamado "${room}".
 Não seja planejador de decoração ou design de interiores. Sugira itens que resolvem necessidades práticas do cotidiano.
 Use categorias dinâmicas adequadas ao ambiente. Não use uma lista fixa universal.
+Varie o porte e o tipo dos produtos: inclua móveis, eletrodomésticos ou eletrônicos relevantes ao cômodo, além de utilidades menores. Não concentre as sugestões apenas em limpeza, organização ou acessórios pequenos. Para um lote de cerca de 18 itens, procure incluir pelo menos 5 móveis ou equipamentos de maior porte, sem forçar opções que não façam sentido para o ambiente.
+Considere itens específicos do uso do cômodo: um quarto pode precisar de cabeceira, cômoda, ar-condicionado ou ventilador de teto; uma sala pode precisar de rack, sofá ou ventilador. Use esses exemplos apenas quando forem adequados ao ambiente informado.
 Evite repetir ou sugerir produtos muito semelhantes. Não sugira estes nomes já existentes ou apresentados nesta sessão: ${[...existing,...avoid].length?[...existing,...avoid].join('; '):'nenhum'}.
 Para cada produto, escreva nome curto em português do Brasil, descrição breve de até 180 caracteres e um motivo prático curto.
 Retorne somente JSON válido, em português do Brasil.`;
