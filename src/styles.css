@@ -117,6 +117,8 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
   .c-main-grid{grid-template-columns:1fr!important}
   .phead{flex-direction:column;align-items:stretch;gap:10px}
   .phead .row{justify-content:flex-start}
+  div[style*="grid-template-columns: repeat(auto-fill"]{grid-template-columns:1fr !important}
+  div[style*="grid-template-columns: repeat(3, minmax(0, 1fr))"]{grid-template-columns:1fr !important}
 }
 
 .dash-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}

@@ -12,9 +12,24 @@ export default function Compras(){
   const [q,setQ]=useState('');
   const [m,setM]=useState<{id?:string}|null>(null);
 
+  const roomObj = s.rooms.find(r=>r.id===tab);
+  const [priorityFilter,setPriorityFilter]=useState('');
+  const [statusFilter,setStatusFilter]=useState('');
+
   const pend=s.items.filter(i=>i.status!=='comprado');
   const bought=s.items.filter(i=>i.status==='comprado');
-  const shown=(tab==='hist'?bought:tab==='desejos'?s.items.filter(i=>!i.roomId&&i.status!=='comprado'):s.items.filter(i=>i.roomId===tab)).filter(i=>i.name.toLowerCase().includes(q.toLowerCase()));
+
+  const roomItems = tab==='hist' ? bought : tab==='desejos' ? s.items.filter(i=>!i.roomId&&i.status!=='comprado') : s.items.filter(i=>i.roomId===tab);
+  const roomTotalItems = roomItems.length;
+  const roomBoughtCount = roomItems.filter(i=>i.status==='comprado').length;
+  const roomEstimatedBudget = roomItems.reduce((acc,i)=>acc+(i.purchase?.price ?? (avg(i)*i.qty)),0);
+
+  const shown = roomItems.filter(i=>{
+    if(q && !i.name.toLowerCase().includes(q.toLowerCase())) return false;
+    if(priorityFilter && i.priority !== priorityFilter) return false;
+    if(statusFilter && i.status !== statusFilter) return false;
+    return true;
+  });
 
   const totalEstimated=pend.reduce((a,i)=>a+avg(i)*i.qty,0);
   const totalSpent=bought.reduce((a,i)=>a+(i.purchase?.price??0),0);
@@ -213,20 +228,117 @@ export default function Compras(){
       </>
     ):(
       <>
-        <div className="phead">
+        {/* Cabeçalho do cômodo / seção */}
+        <div className="phead" style={{marginBottom:20}}>
           <div>
-            <h1>{tab==='desejos'?'Lista de Desejos':tab==='hist'?'Histórico':s.rooms.find(r=>r.id===tab)?.name??'Compras'}</h1>
+            <h1>{tab==='desejos'?'Lista de Desejos':tab==='hist'?'Histórico':roomObj?.name??'Compras'}</h1>
             <p className="sub">Planeje, compare ofertas e registre compras</p>
           </div>
           {tab!=='hist'&&<button className="btn" onClick={()=>setM({})}><Plus size={16}/>Novo item</button>}
         </div>
 
-        {tab!=='hist'&&<div className="row srch"><Search size={16}/><input placeholder="Buscar itens…" value={q} onChange={e=>setQ(e.target.value)}/>{tab!=='desejos'&&<button className="btn ghost sm" onClick={()=>{if(confirm('Excluir cômodo? Os itens vão para a lista de desejos.')){set(st=>({...st,rooms:st.rooms.filter(r=>r.id!==tab),items:st.items.map(i=>i.roomId===tab?{...i,roomId:null}:i)}));setTab('geral')}}}>Excluir cômodo</button>}</div>}
+        {/* Busca e filtros */}
+        {tab!=='hist'&&(
+          <div className="card" style={{padding:16,marginBottom:20}}>
+            <div className="row" style={{margin:0,gap:12,flexWrap:'wrap'}}>
+              <div style={{position:'relative',flex:1,display:'flex',alignItems:'center',minWidth:220}}>
+                <Search size={16} style={{position:'absolute',left:12,color:'var(--mut)'}}/>
+                <input placeholder="Buscar itens…" value={q} onChange={e=>setQ(e.target.value)} style={{paddingLeft:38,width:'100%'}}/>
+              </div>
+              <select value={priorityFilter} onChange={e=>setPriorityFilter(e.target.value)} style={{width:'auto',minWidth:140}}>
+                <option value="">Todas prioridades</option>
+                <option value="alta">Alta</option>
+                <option value="media">Média</option>
+                <option value="baixa">Baixa</option>
+              </select>
+              <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} style={{width:'auto',minWidth:140}}>
+                <option value="">Todos status</option>
+                <option value="desejado">Desejado</option>
+                <option value="pesquisando">Pesquisando</option>
+                <option value="comprado">Comprado</option>
+              </select>
+              {tab!=='desejos'&&tab!=='hist'&&(
+                <button className="btn ghost danger" onClick={()=>{
+                  if(confirm(`Excluir cômodo "${roomObj?.name}"? Os itens vão para a lista de desejos.`)){
+                    set(st=>({...st,rooms:st.rooms.filter(r=>r.id!==tab),items:st.items.map(i=>i.roomId===tab?{...i,roomId:null}:i)}));
+                    setTab('geral');
+                    toast('Cômodo excluído');
+                  }
+                }} style={{borderColor:'rgba(239,107,115,0.3)',color:'#ef6b73'}}>
+                  <Trash2 size={16}/> Excluir cômodo
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
+        {/* Cards dos produtos em grade responsiva (4+ colunas em desktop) */}
         {shown.length?(
-          <div className="grid">{shown.map(i=><div key={i.id} className="card item tl" role="button" tabIndex={0} onClick={()=>setM({id:i.id})} onKeyDown={e=>e.key==='Enter'&&setM({id:i.id})}><div className="between" style={{flexWrap:'nowrap'}}><div><span className={'badge p-'+i.priority}>{L[i.priority]}</span><span className="badge">{L[i.status]}</span></div><button className="ib" aria-label="Excluir item" onClick={e=>{e.stopPropagation();delItem(i)}}><Trash2 size={16}/></button></div><b>{i.name}</b><small>{i.desc}</small>{i.purchase?<b className="price">{brl(i.purchase.price)} · {i.purchase.store}</b>:avg(i)>0&&<b className="price">{brl(avg(i))}</b>}</div>)}</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:16,marginBottom:24}}>
+            {shown.map(i=>{
+              const RoomIcon=roomObj&&ri[roomObj.id]?ri[roomObj.id]:ShoppingCart;
+              const selOffer=i.offers.find(o=>o.selected);
+              const storeName=i.purchase?.store || selOffer?.store || (i.offers.length > 0 ? `${i.offers.length} oferta(s)` : 'Sem oferta');
+              const itemPrice=i.purchase?.price ?? (avg(i)>0 ? avg(i)*i.qty : 0);
+              return <div key={i.id} className="card hov" style={{margin:0,padding:18,cursor:'pointer',display:'flex',flexDirection:'column',gap:14}} onClick={()=>setM({id:i.id})} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&setM({id:i.id})}>
+                <div className="between" style={{margin:0}}>
+                  <div className="row" style={{margin:0,gap:6}}>
+                    <span className={'badge p-'+i.priority}>{L[i.priority]}</span>
+                    <span className="badge">{L[i.status]}</span>
+                  </div>
+                  <button className="ib" aria-label="Excluir item" onClick={e=>{e.stopPropagation();delItem(i)}}><Trash2 size={16}/></button>
+                </div>
+                <div className="row" style={{margin:0,gap:12,alignItems:'flex-start'}}>
+                  <div style={{width:42,height:42,borderRadius:12,background:'rgba(139,92,246,0.15)',color:'var(--pri)',display:'grid',placeItems:'center',flex:'none'}}>
+                    <RoomIcon size={20}/>
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <b style={{fontSize:'1.05rem',display:'block',marginBottom:4,wordBreak:'break-word'}}>{i.name}</b>
+                    {i.desc && <p style={{margin:0,color:'var(--mut)',fontSize:'0.85rem',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{i.desc}</p>}
+                  </div>
+                </div>
+                <div className="between" style={{marginTop:'auto',paddingTop:10,borderTop:'1px solid var(--bd)'}}>
+                  <span style={{fontSize:'0.8rem',color:'var(--mut)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'55%'}}>
+                    {storeName}
+                  </span>
+                  <b className="price" style={{color:'var(--aqua)',fontSize:'1.05rem',fontWeight:700}}>
+                    {brl(itemPrice)}
+                  </b>
+                </div>
+              </div>;
+            })}
+          </div>
         ):(
-          <Empty text="Nada por aqui ainda."/>
+          <Empty text="Nada por aqui ainda. Adicione novos itens para começar."/>
+        )}
+
+        {/* Resumo do cômodo (se aplicável, para cômodos e desejos) */}
+        {tab!=='hist' && roomItems.length > 0 && (
+          <div className="card" style={{padding:24,background:'linear-gradient(135deg, #1B1D2D 0%, #252243 100%)',border:'1px solid rgba(139,92,246,0.3)',borderRadius:16,marginTop:24}}>
+            <div className="between" style={{marginBottom:16}}>
+              <div>
+                <h3 style={{margin:0,fontSize:'1.15rem'}}>Resumo de {roomObj?.name ?? 'Desejos'}</h3>
+                <p style={{margin:0,color:'var(--mut)',fontSize:'0.85rem'}}>Estatísticas e orçamento atualizados</p>
+              </div>
+              <span className="badge" style={{background:'rgba(139,92,246,0.2)',color:'var(--lav)',fontWeight:600,padding:'6px 12px'}}>
+                {roomBoughtCount} de {roomTotalItems} comprados ({roomTotalItems > 0 ? Math.round((roomBoughtCount/roomTotalItems)*100) : 0}%)
+              </span>
+            </div>
+            <div className="grid" style={{gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:14,margin:0}}>
+              <div className="card" style={{margin:0,padding:16,background:'rgba(27,29,45,0.7)',border:'1px solid var(--bd)'}}>
+                <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Total de itens</small>
+                <b style={{fontSize:'1.4rem',display:'block',marginTop:6}}>{roomTotalItems}</b>
+              </div>
+              <div className="card" style={{margin:0,padding:16,background:'rgba(27,29,45,0.7)',border:'1px solid var(--bd)'}}>
+                <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Itens comprados</small>
+                <b style={{fontSize:'1.4rem',display:'block',marginTop:6,color:'var(--aqua)'}}>{roomBoughtCount}</b>
+              </div>
+              <div className="card" style={{margin:0,padding:16,background:'rgba(27,29,45,0.7)',border:'1px solid var(--bd)'}}>
+                <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Orçamento estimado</small>
+                <b style={{fontSize:'1.4rem',display:'block',marginTop:6,color:'var(--lav)'}}>{brl(roomEstimatedBudget)}</b>
+              </div>
+            </div>
+          </div>
         )}
       </>
     )}
