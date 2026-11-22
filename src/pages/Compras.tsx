@@ -4,6 +4,7 @@ import {discoverProducts} from '../services/ai';
 import type {ProductDiscovery as ProductDiscoveryData,ProductSuggestion} from '../services/ai';
 
 const ri:Record<string,any>={sala:Sofa,quarto:BedDouble,cozinha:CookingPot,banheiro:Bath};
+const priorityOrder:Record<Priority,number>={alta:0,media:1,baixa:2};
 
 export default function Compras(){
   const s=useStore();
@@ -32,6 +33,8 @@ export default function Compras(){
     if(priorityFilter && i.priority !== priorityFilter) return false;
     if(statusFilter && i.status !== statusFilter) return false;
     return true;
+  }).sort((a,b)=>{
+    return priorityOrder[a.priority]-priorityOrder[b.priority]||a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'});
   });
 
   const totalEstimated=pend.reduce((a,i)=>a+avg(i)*i.qty,0);
