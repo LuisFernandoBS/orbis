@@ -26,14 +26,23 @@ Evite repetir ou sugerir produtos muito semelhantes. Não sugira estes nomes já
 Para cada produto, escreva nome curto em português do Brasil, descrição breve de até 180 caracteres e um motivo prático curto.
 Retorne somente JSON válido, em português do Brasil.`;
 try{
-const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
-method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{
+const models=[model,'gemini-2.5-flash-lite','gemini-2.0-flash'].filter((v,i,a)=>v&&a.indexOf(v)===i);
+const body=JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseMimeType:'application/json',responseSchema:{type:'OBJECT',properties:{
 room:{type:'STRING'},categories:{type:'ARRAY',minItems:3,maxItems:7,items:{type:'OBJECT',properties:{name:{type:'STRING'},products:{type:'ARRAY',minItems:2,maxItems:8,items:{type:'OBJECT',properties:{name:{type:'STRING'},description:{type:'STRING'},reason:{type:'STRING'}},required:['name','description','reason']}}},required:['name','products']}}
 },required:['room','categories']}}})
+let j:any=null;
+let lastError='';
+for(const candidate of models){
+const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(candidate)}:generateContent`,{
+method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body
 });
-if(!r.ok){const e:any=await r.json().catch(()=>null);return res.status(502).json({error:'Gemini: '+(e?.error?.message??r.status)})}
-const j:any=await r.json();
+if(r.ok){j=await r.json();break}
+const e:any=await r.json().catch(()=>null);
+lastError=e?.error?.message??`Erro ${r.status}`;
+const temporary=r.status===429||r.status===503||r.status===500;
+if(!temporary)break;
+}
+if(!j)return res.status(502).json({error:lastError.includes('high demand')?'O Gemini está temporariamente com alta demanda. Tente novamente em alguns instantes.':'Gemini: '+(lastError||'indisponível no momento.')})
 const text=j.candidates?.[0]?.content?.parts?.map((p:any)=>p.text||'').join('')||'';
 const parsed=JSON.parse(text);
 if(!Array.isArray(parsed.categories))throw new Error('categories');
