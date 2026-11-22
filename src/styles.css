@@ -160,15 +160,14 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
 @keyframes ai-spin{to{transform:rotate(360deg)}}
 .ai-category-tabs{
   display:flex;
+  flex-wrap:wrap;
   gap:8px;
-  overflow-x:auto;
   padding:0 0 12px;
   margin-bottom:14px;
-  scrollbar-width:none;
 }
-.ai-category-tabs::-webkit-scrollbar{display:none}
 .ai-category-tab{
-  flex:none;
+  flex:0 1 auto;
+  max-width:100%;
   min-height:38px;
   border:1px solid var(--bd);
   border-radius:999px;
@@ -176,6 +175,8 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
   color:var(--mut);
   padding:8px 12px;
   font:inherit;
+  text-align:left;
+  overflow-wrap:anywhere;
   cursor:pointer;
 }
 .ai-category-tab.on{background:rgba(139,92,246,.18);border-color:rgba(182,156,255,.45);color:var(--lav)}
@@ -218,7 +219,6 @@ input,select,textarea{font-size:16px}.ib{padding:10px}.btn{min-height:44px}.betw
   .phead .ai-discover-btn{width:100%}
   .ai-product-grid{grid-template-columns:1fr}
   .ai-product-placeholder{height:128px}
-  .ai-category-tabs{margin-right:-14px;padding-right:14px}
   .ai-product-body{padding:16px}
   .ai-add-btn{min-height:46px}
 }
