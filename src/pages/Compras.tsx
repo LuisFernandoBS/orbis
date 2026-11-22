@@ -1,5 +1,7 @@
-import {useState,useEffect} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home,Pencil} from 'lucide-react';
-import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,offerTotal,today,L} from '../utils';import type {Item,Priority,Offer} from '../types';
+import {useState,useEffect} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home,Pencil,Sparkles,Check,Image as ImageIcon,LoaderCircle,RefreshCw} from 'lucide-react';
+import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,offerTotal,today,L} from '../utils';import type {Item,Priority,Offer,Room} from '../types';
+import {discoverProducts} from '../services/ai';
+import type {ProductDiscovery as ProductDiscoveryData,ProductSuggestion} from '../services/ai';
 
 const ri:Record<string,any>={sala:Sofa,quarto:BedDouble,cozinha:CookingPot,banheiro:Bath};
 
@@ -11,6 +13,7 @@ export default function Compras(){
   const setTab=(k:string)=>nav(k==='geral'?'/casa/compras':'/casa/compras/'+k);
   const [q,setQ]=useState('');
   const [m,setM]=useState<{id?:string}|null>(null);
+  const [aiRoom,setAiRoom]=useState<Room|null>(null);
 
   const roomObj = s.rooms.find(r=>r.id===tab);
   const [priorityFilter,setPriorityFilter]=useState('');
@@ -234,7 +237,8 @@ export default function Compras(){
             <h1>{tab==='desejos'?'Lista de Desejos':tab==='hist'?'Histórico':roomObj?.name??'Compras'}</h1>
             <p className="sub">Planeje, compare ofertas e registre compras</p>
           </div>
-          {tab!=='hist'&&<button className="btn" onClick={()=>setM({})}><Plus size={16}/>Novo item</button>}
+          {tab!=='hist'&&tab!=='desejos'&&roomObj&&<div className="row" style={{margin:0,gap:8,justifyContent:'flex-end'}}><button className="btn ai-discover-btn" onClick={()=>setAiRoom(roomObj)}><Sparkles size={16}/>Descobrir produtos com IA</button><button className="btn" onClick={()=>setM({})}><Plus size={16}/>Novo item</button></div>}
+          {tab==='desejos'&&<button className="btn" onClick={()=>setM({})}><Plus size={16}/>Novo item</button>}
         </div>
 
         {/* Busca e filtros */}
@@ -343,8 +347,96 @@ export default function Compras(){
       </>
     )}
 
+    {aiRoom&&<ProductDiscovery room={aiRoom} onClose={()=>setAiRoom(null)}/>}
     {m&&<ItemModal id={m.id} roomId={['desejos','hist','geral'].includes(tab)?null:tab} onClose={()=>setM(null)}/>}
   </>;
+}
+
+const normProductName=(name:string)=>name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+
+function ProductDiscovery({room,onClose}:{room:Room;onClose:()=>void}){
+  const s=useStore();
+  const [data,setData]=useState<ProductDiscoveryData|null>(null);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState('');
+  const [activeCategory,setActiveCategory]=useState('');
+
+  const generate=async(more=false)=>{
+    setBusy(true);setError('');
+    try{
+      const existing=s.items.filter(i=>i.roomId===room.id).map(i=>i.name);
+      const presented=data?.categories.flatMap(c=>c.products.map(p=>p.name))??[];
+      const result=await discoverProducts({room:room.name,roomId:room.id,existingProducts:existing,avoidNames:presented,count:more?12:18});
+      setData(current=>{
+        if(!more||!current)return result;
+        const merged=result.categories.map(category=>{
+          const old=current.categories.find(c=>normProductName(c.name)===normProductName(category.name));
+          const products=[...(old?.products??[]),...category.products];
+          const unique=products.filter((product,index,all)=>all.findIndex(p=>normProductName(p.name)===normProductName(product.name))===index);
+          return {name:category.name,products:unique};
+        });
+        current.categories.forEach(category=>{
+          if(!merged.some(c=>normProductName(c.name)===normProductName(category.name)))merged.push(category);
+        });
+        return {room:result.room,categories:merged};
+      });
+      setActiveCategory(result.categories[0]?.name??'');
+    }catch(e){setError((e as Error).message)}
+    setBusy(false);
+  };
+
+  useEffect(()=>{generate(false);},[]);
+
+  const inList=(name:string)=>{
+    const n=normProductName(name);
+    return s.items.some(i=>i.roomId===room.id&&normProductName(i.name)===n);
+  };
+  const addProduct=(product:ProductSuggestion)=>{
+    if(inList(product.name)){toast('Este produto já está na lista');return;}
+    set(st=>{
+      const duplicate=st.items.some(i=>i.roomId===room.id&&normProductName(i.name)===normProductName(product.name));
+      if(duplicate)return st;
+      const item:Item={id:uid(),name:product.name,desc:product.description,qty:1,priority:'media',status:'desejado',roomId:room.id,offers:[]};
+      return {...st,items:[...st.items,item]};
+    });
+    toast(`"${product.name}" adicionado à lista`);
+  };
+
+  const categories=data?.categories??[];
+  const selected=categories.find(c=>c.name===activeCategory)??categories[0];
+  return <Modal full title={`Descobrir produtos — ${room.name}`} onClose={onClose} footer={
+    <button className="btn" onClick={()=>generate(true)} disabled={busy}>
+      {busy?<LoaderCircle size={16}/>:<RefreshCw size={16}/>} Gerar mais sugestões
+    </button>
+  }>
+    <div className="ai-discover">
+      {busy&&!data&&<div className="ai-state"><LoaderCircle className="ai-spin" size={28}/><b>Consultando a IA…</b><small>Estamos escolhendo produtos úteis para {room.name}.</small></div>}
+      {error&&<div className="ai-state ai-error"><AlertTriangle size={22}/><b>Não foi possível gerar sugestões</b><small>{error}</small><button className="btn ghost sm" onClick={()=>generate(false)}>Tentar novamente</button></div>}
+      {!busy&&data&&categories.length===0&&<div className="ai-state"><b>Nenhuma sugestão encontrada</b><small>Tente gerar novas ideias para este ambiente.</small></div>}
+      {data&&selected&&<>
+        <div className="ai-category-tabs" role="tablist" aria-label="Categorias de produtos">
+          {categories.map(category=><button key={category.name} type="button" role="tab" aria-selected={selected.name===category.name} className={'ai-category-tab '+(selected.name===category.name?'on':'')} onClick={()=>setActiveCategory(category.name)}>{category.name}</button>)}
+        </div>
+        <div className="ai-product-grid">
+          {selected.products.map(product=>{
+            const added=inList(product.name);
+            return <article className="ai-product-card" key={`${selected.name}-${normProductName(product.name)}`}>
+              <div className="ai-product-placeholder"><ImageIcon size={24}/><small>Produto {room.name}</small></div>
+              <div className="ai-product-body">
+                <span className="ai-category-label">{selected.name}</span>
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                {product.reason&&<small className="ai-reason">{product.reason}</small>}
+                <button className={'btn ai-add-btn '+(added?'added':'')} onClick={()=>addProduct(product)} disabled={added}>
+                  {added?<><Check size={16}/>Já adicionado</>:<><Plus size={16}/>Adicionar à lista</>}
+                </button>
+              </div>
+            </article>;
+          })}
+        </div>
+      </>}
+    </div>
+  </Modal>
 }
 
 function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()=>void}){

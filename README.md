@@ -17,6 +17,7 @@ Sem Tailwind (CSS com variáveis), sem mapa neural, trilha com IA, biblioteca de
 
 ## Gemini via Vercel (variável de ambiente)
 A trilha chama `/api/trail` (`api/trail.ts`), que lê `GEMINI_API_KEY` no servidor.
+A descoberta de produtos em Compras chama `/api/products/discover` (`api/products/discover.ts`) e usa a mesma chave no servidor.
 1. Vercel → Project → Settings → Environment Variables: `GEMINI_API_KEY` (e opcional `GEMINI_MODEL`). **Não** use prefixo `VITE_`.
 2. Faça redeploy.
 3. Local: copie `.env.example` para `.env.local`, preencha e rode `npx vercel dev` (o `npm run dev` não serve `/api`).
