@@ -1,5 +1,5 @@
 export type Priority='alta'|'media'|'baixa';export type Status='desejado'|'pesquisando'|'comprado';
-export interface Offer{id:string;name:string;features:string;price:number;frete?:number;store:string;url:string;used:boolean;date:string;selected:boolean}
+export interface Offer{id:string;name:string;features:string;price:number;frete?:number;store:string;url:string;imageUrl?:string;used:boolean;date:string;selected:boolean}
 export interface Item{id:string;name:string;desc:string;qty:number;priority:Priority;status:Status;roomId:string|null;offers:Offer[];purchase?:{price:number;store:string;date:string;notes:string}}
 export interface Room{id:string;name:string}
 export type Rec='none'|'weekly'|'biweekly'|'monthly'|'yearly';

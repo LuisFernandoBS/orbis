@@ -1,5 +1,5 @@
-import {useState,useEffect} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home,Pencil,Sparkles,Check,Image as ImageIcon,LoaderCircle,RefreshCw} from 'lucide-react';
-import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,offerTotal,today,L} from '../utils';import type {Item,Priority,Offer,Room} from '../types';
+import {useState,useEffect,useRef} from 'react';import {useParams,useNavigate} from 'react-router-dom';import {Plus,Trash2,Search,ShoppingCart,CheckCircle2,Star,Wallet,Heart,Clock,AlertTriangle,ArrowRight,ShoppingBag,Sofa,BedDouble,CookingPot,Bath,DoorOpen,ChevronRight,Home,Pencil,Sparkles,Check,Image as ImageIcon,LoaderCircle,RefreshCw,X,Tag,Link as LinkIcon,Store,ShieldCheck,Upload} from 'lucide-react';
+import {useStore,set,uid} from '../store';import {Modal,Stat,Empty,fd,toast,Money} from '../components/ui';import {brl,avg,offerTotal,today,L} from '../utils';import type {Item,Priority,Offer,Room} from '../types';import {supabase} from '../services/supabase';
 import {discoverProducts} from '../services/ai';
 import type {ProductDiscovery as ProductDiscoveryData,ProductSuggestion} from '../services/ai';
 
@@ -458,7 +458,6 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
   const s=useStore();
   const it=s.items.find(i=>i.id===id);
   const [buy,setBuy]=useState(false);
-  const [ok,setOk]=useState(0);
   const [editOffer,setEditOffer]=useState<Offer|null>(null);
   useEffect(()=>{if(buy)setTimeout(()=>document.getElementById('buyform')?.scrollIntoView({behavior:'smooth',block:'center'}),50)},[buy]);
   const upd=(fn:(i:Item)=>Item)=>set(st=>({...st,items:st.items.map(x=>x.id===id?fn(x):x)}));
@@ -466,7 +465,7 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
   const totals=sel.map(offerTotal);
   const del=()=>{if(it&&confirm('Excluir item?')){set(st=>({...st,items:st.items.filter(x=>x.id!==it.id)}));toast('Item excluído');onClose()}};
   const footer=it?<><button type="button" className="btn dsolid icon" aria-label="Excluir item" onClick={del}><Trash2 size={18}/></button>{it.status!=='comprado'&&!buy&&<button type="button" className="btn ghost" onClick={()=>setBuy(true)}>Registrar compra</button>}<button form="itemform" className="btn">Salvar</button></>:<><button type="button" className="btn ghost" onClick={onClose}>Cancelar</button><button form="itemform" className="btn">Salvar</button></>;
-  return <Modal full title={it?it.name:'Novo item'} onClose={onClose} footer={footer}>
+  return <><Modal full title={it?it.name:'Novo item'} onClose={onClose} footer={footer}>
   <form id="itemform" className="form" onSubmit={e=>{const f=fd(e);const b={name:f.name,desc:f.desc,qty:+f.qty||1,priority:f.priority as Priority,roomId:f.room||null};const st0=(f.status||'desejado') as 'desejado'|'pesquisando';
   set(st=>({...st,items:it?st.items.map(x=>x.id===it.id?{...x,...b,status:x.status==='comprado'?'comprado':st0}:x):[...st.items,{id:uid(),...b,status:st0,offers:[]}]}));onClose()}}>
   <label>Nome<input name="name" required defaultValue={it?.name}/></label><label>Descrição<input name="desc" defaultValue={it?.desc}/></label>
@@ -480,6 +479,7 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
     const hasFrete=o.frete!==undefined&&o.frete>0;
     return <div key={o.id} className="card between">
       <label className="row"><input type="checkbox" checked={o.selected} onChange={()=>upd(x=>({...x,offers:x.offers.map(y=>y.id===o.id?{...y,selected:!y.selected}:y)}))}/>
+      {o.imageUrl&&<img src={o.imageUrl} alt="" style={{width:48,height:48,objectFit:'cover',borderRadius:8,flex:'none'}}/>}
       <span>
         <b>{o.name}</b><br/>
         <small>{o.features}{o.features?' · ':''}{o.store}{o.store?' · ':''}{o.used?'usado':'novo'}</small>
@@ -495,30 +495,31 @@ function ItemModal({id,roomId,onClose}:{id?:string;roomId:string|null;onClose:()
     </div>;
   })}
   {sel.length>0&&<div className="card">Média (selecionadas): <b>{brl(totals.reduce((a,b)=>a+b,0)/sel.length)}</b> · Menor: {brl(Math.min(...totals))} · Maior: {brl(Math.max(...totals))} · {sel.length} oferta(s)</div>}
-  <form key={ok+(editOffer?.id??'new')} className="form" onSubmit={e=>{
-    const f=fd(e);
-    const price=+f.price||0;
-    const frete=f.frete?+f.frete:undefined;
-    if(editOffer){
-      upd(x=>({...x,offers:x.offers.map(y=>y.id===editOffer.id?{...y,name:f.name,features:f.features,price,frete,store:f.store,url:f.url,used:f.cond==='usado'}:y)}));
-      setEditOffer(null);
-    }else{
-      upd(x=>({...x,offers:[...x.offers,{id:uid(),name:f.name,features:f.features,price,frete,store:f.store,url:f.url,used:f.cond==='usado',date:today(),selected:true}]}));
-    }
-    setOk(o=>o+1);
-  }}>
-    <h4>{editOffer?'Editar oferta':'Adicionar oferta'}</h4>
-    <label>Produto<input name="name" required defaultValue={editOffer?.name}/></label>
-    <label>Características<input name="features" defaultValue={editOffer?.features}/></label>
-    <label>Preço do produto (R$)<Money name="price" required defaultValue={editOffer?.price}/></label>
-    <label>Frete (R$ — opcional)<Money name="frete" defaultValue={editOffer?.frete}/></label>
-    <label>Loja<input name="store" defaultValue={editOffer?.store}/></label>
-    <label>Link<input name="url" type="url" defaultValue={editOffer?.url}/></label>
-    <label>Condição<select name="cond" defaultValue={editOffer?.used?'usado':'novo'}><option>novo</option><option>usado</option></select></label>
-    <div className="row end" style={{gap:8}}>
-      {editOffer&&<button type="button" className="btn ghost sm" onClick={()=>setEditOffer(null)}>Cancelar</button>}
-      <button className="btn sm">{editOffer?'Atualizar oferta':'Adicionar oferta'}</button>
-    </div>
-  </form>
+  <button type="button" className="btn" onClick={()=>setEditOffer({id:'',name:'',features:'',price:0,store:'',url:'',used:false,date:today(),selected:true})}><Plus size={16}/>Adicionar oferta</button>
   {it.status!=='comprado'&&(buy?<form id="buyform" className="form" onSubmit={e=>{const f=fd(e);upd(x=>({...x,status:'comprado',purchase:{price:+f.price,store:f.store,date:f.date,notes:f.notes}}));toast('Compra registrada');onClose()}}><label>Valor pago (R$)<Money name="price" required defaultValue={avg(it)}/></label><label>Loja<input name="store"/></label><label>Data<input name="date" type="date" defaultValue={today()}/></label><label>Observações<input name="notes"/></label><div className="row end"><button className="btn">Confirmar compra</button></div></form>:null)}
-  </>}</Modal>}
+  </>}</Modal>{editOffer&&it&&<OfferModal item={it} offer={editOffer.id?editOffer:null} onClose={()=>setEditOffer(null)} onSave={offer=>{upd(x=>({...x,offers:editOffer.id?x.offers.map(y=>y.id===offer.id?offer:y):[...x.offers,offer]}));setEditOffer(null)}}/>}</>}
+
+function OfferModal({item,offer,onClose,onSave}:{item:Item;offer:Offer|null;onClose:()=>void;onSave:(offer:Offer)=>void}){
+  const [url,setUrl]=useState(offer?.url??'');const [imageUrl,setImageUrl]=useState(offer?.imageUrl??'');const [status,setStatus]=useState('');const [busy,setBusy]=useState(false);const fileRef=useRef<HTMLInputElement>(null);
+  const shopee=(()=>{try{const host=new URL(url).hostname.toLowerCase();return host==='shopee.com.br'||host.endsWith('.shopee.com.br')}catch{return false}})();
+  useEffect(()=>{if(!url.trim()||!shopee){setStatus('');return}if(offer?.imageUrl&&url===offer.url)return;let active=true;const timer=setTimeout(async()=>{setBusy(true);setStatus('Identificando imagem do produto...');try{const {data:{session}}=await supabase.auth.getSession();if(!session?.access_token)throw new Error('Faça login para identificar a imagem.');const response=await fetch('/api/offers/image',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({url})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Não foi possível localizar a imagem. Você pode adicioná-la manualmente.');if(active){setImageUrl(result.imageUrl);setStatus('Imagem carregada com sucesso!')}}catch(error){if(active)setStatus((error as Error).message)}finally{if(active)setBusy(false)}},650);return()=>{active=false;clearTimeout(timer)}},[url]);
+  const uploadManual=async(file?:File)=>{if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setStatus('Use uma imagem JPG, PNG ou WebP.');return}if(file.size>3_000_000){setStatus('A imagem manual deve ter até 3 MB.');return}setBusy(true);setStatus('Salvando imagem...');try{const dataUrl=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('Falha ao ler a imagem'));reader.readAsDataURL(file)});const {data:{session}}=await supabase.auth.getSession();const response=await fetch('/api/offers/image',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token??''}`},body:JSON.stringify({imageDataUrl:dataUrl})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Falha ao salvar');setImageUrl(result.imageUrl);setStatus('Imagem carregada com sucesso!')}catch{setStatus('Não foi possível salvar a imagem. Tente novamente.')}finally{setBusy(false)}};
+  return <Modal full title={`${item.name} · ${offer?'Editar oferta':'Adicionar oferta'}`} onClose={onClose} footer={<><button type="button" className="btn ghost offer-cancel" onClick={onClose}><X size={16}/>Cancelar</button><button form="offer-editor" className="btn offer-save"><Plus size={18}/>{offer?'Salvar alterações':'Adicionar oferta'}</button></>}>
+    <form id="offer-editor" className="offer-editor" onSubmit={e=>{const f=fd(e);const updated:Offer={id:offer?.id||uid(),name:f.name.trim(),features:f.features.trim(),price:+f.price||0,frete:f.frete?+f.frete:undefined,store:f.store.trim(),url:f.url.trim(),imageUrl:imageUrl||undefined,used:f.cond==='usado',date:offer?.date??today(),selected:offer?.selected??true};onSave(updated)}}>
+      <div className="offer-intro"><div className="offer-tag"><Tag size={24}/></div><div><h2>{item.name}</h2><p>{offer?'Editar oferta para este produto':'Adicionar uma oferta para este produto'}</p></div></div>
+      {shopee&&<div className={'offer-status '+(imageUrl?'success':'')} role="status"><Sparkles size={19}/><span><b>Link da Shopee detectado!</b> {status||'A imagem do produto será buscada automaticamente.'}</span>{busy&&<LoaderCircle className="ai-spin" size={18}/>}</div>}
+      <div className="offer-layout"><div className="offer-visual-column">
+        <div className="offer-preview">{imageUrl?<img src={imageUrl} alt={`Imagem de ${item.name}`}/>:<div className="offer-placeholder"><ImageIcon size={34}/><b>Prévia do produto</b><small>A imagem da oferta aparecerá aqui</small></div>}<div className="offer-image-actions"><button type="button" className="btn ghost sm" onClick={()=>fileRef.current?.click()}><Upload size={15}/>{imageUrl?'Trocar imagem':'Adicionar imagem'}</button>{imageUrl&&<button type="button" className="btn ghost sm danger" onClick={()=>{setImageUrl('');setStatus('Imagem removida.')}}><Trash2 size={15}/>Remover</button>}</div></div>
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e=>uploadManual(e.target.files?.[0])}/>
+        <label className="offer-field offer-link-field"><span>Link da oferta</span><div className="offer-input-icon"><LinkIcon size={18}/><input name="url" type="url" value={url} onChange={e=>{const next=e.target.value;if(next!==url){setImageUrl('');setStatus('')}setUrl(next)}} placeholder="https://shopee.com.br/..."/></div></label>
+        {status&&!shopee&&<div className="offer-inline-status" role="status">{status}</div>}
+      </div><div className="offer-fields">
+        <label className="offer-field"><span>Produto</span><div className="offer-input-icon"><ShoppingBag size={18}/><input name="name" required defaultValue={offer?.name??item.name} placeholder="Nome do produto"/></div></label>
+        <div className="offer-pair"><label className="offer-field"><span>Características</span><input name="features" defaultValue={offer?.features} placeholder="Modelo, tamanho, cor..."/></label><label className="offer-field"><span>Condição</span><select name="cond" defaultValue={offer?.used?'usado':'novo'}><option value="novo">Novo</option><option value="usado">Usado</option></select></label></div>
+        <div className="offer-pair"><label className="offer-field"><span>Preço do produto (R$)</span><Money name="price" required defaultValue={offer?.price}/></label><label className="offer-field"><span>Frete (R$ · opcional)</span><Money name="frete" defaultValue={offer?.frete}/></label></div>
+        <label className="offer-field"><span>Loja</span><div className="offer-input-icon"><Store size={18}/><input name="store" defaultValue={offer?.store??(shopee?'Shopee':'')} placeholder="Nome da loja"/></div></label>
+        <div className="offer-tip"><ShieldCheck size={19}/><span><b>Dica do Orbis</b><small>Compare o preço total com o frete antes de escolher sua oferta.</small></span></div>
+      </div></div>
+    </form>
+  </Modal>
+}
