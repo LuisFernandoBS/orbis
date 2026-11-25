@@ -20,14 +20,14 @@ useEffect(()=>{const r=document.documentElement;r.dataset.theme=p.theme;r.datase
 if(p.accent==='#8B5CF6'){r.style.removeProperty('--pri');r.style.removeProperty('--lav')}else{r.style.setProperty('--pri',p.accent);r.style.setProperty('--lav',p.accent)}},[p.theme,p.compact,p.anim,p.accent]);
 useEffect(()=>{document.querySelector('.subnav .tab.active')?.scrollIntoView({inline:'center',block:'nearest'})},[loc.pathname,s.rooms.length]);
 useEffect(()=>{const h=()=>toast('Falha ao sincronizar com o Supabase');window.addEventListener('orbis:sync-error',h);return()=>window.removeEventListener('orbis:sync-error',h)},[]);
-const R=(n:N,d:number):React.ReactNode=>{const I=n.i,pad={paddingLeft:12+d*14};
-if(!n.kids)return <NavLink key={n.k} to={n.to!} end className="link" style={pad}><I size={18}/><span>{n.l}</span></NavLink>;
+const R=(n:N,d:number):React.ReactNode=>{const I=n.i,pad={paddingLeft:12+d*14},collapsed=col||!p.labels;
+if(!n.kids)return <NavLink key={n.k} to={n.to!} end className="link" style={pad} aria-label={collapsed?n.l:undefined} title={collapsed?n.l:undefined}><I size={18}/><span>{n.l}</span></NavLink>;
 const open=o[n.k]??loc.pathname.startsWith(n.pre!);
-return <div key={n.k}><button className={'link'+(loc.pathname.startsWith(n.pre!)?' on':'')} style={{...pad,width:'100%'}} onClick={()=>setO({...o,[n.k]:!open})}><I size={18}/><span>{n.l}</span><span style={{marginLeft:'auto',display:'grid'}}>{open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</span></button>{open&&n.kids.map(k=>R(k,d+1))}</div>};
+return <div key={n.k}><button className={'link'+(loc.pathname.startsWith(n.pre!)?' on':'')} style={{...pad,width:'100%'}} aria-label={collapsed?n.l:undefined} title={collapsed?n.l:undefined} onClick={()=>setO({...o,[n.k]:!open})}><I size={18}/><span>{n.l}</span><span style={{marginLeft:'auto',display:'grid'}}>{open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</span></button>{open&&n.kids.map(k=>R(k,d+1))}</div>};
 const sn=sec(T,loc.pathname);
 	const isCasa=loc.pathname.startsWith("/casa");
 return <div className={'app'+(col||!p.labels?' col':'')}>
-<aside className="side"><div className="brand"><img src="/logo.png" className="logo-img" alt=""/><b>ORBIS</b><button className="ib" onClick={()=>setCol(!col)} aria-label="Recolher menu">{col?<PanelLeft size={18}/>:<PanelLeftClose size={18}/>}</button></div>
+<aside className="side"><div className="brand"><img src="/logo.png" className="logo-img" alt=""/><b>ORBIS</b><button className="ib" onClick={()=>setCol(!col)} aria-label={col?'Expandir menu':'Recolher menu'} title={col?'Expandir menu':'Recolher menu'}>{col?<PanelLeft size={18}/>:<PanelLeftClose size={18}/>}</button></div>
 {T.map(n=>R(n,0))}
 <div className="foot"><button className="link" style={{width:'100%'}} onClick={()=>set(st=>({...st,prefs:{...st.prefs,theme:p.theme==='dark'?'light':'dark'}}))}>{p.theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}<span>{p.theme==='dark'?'Modo Claro':'Modo Escuro'}</span></button>
 <Link to="/config" className="link"><User size={18}/><span>{p.name}<br/><small>{p.email}</small></span></Link></div></aside>
