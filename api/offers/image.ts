@@ -1,9 +1,12 @@
 import {createClient} from '@supabase/supabase-js';
 
-const allowedStoreHosts=['shopee.com.br','shopee.com','shopee.sg'];
-const isStoreHost=(host:string)=>allowedStoreHosts.some(domain=>host===domain||host.endsWith('.'+domain));
+const allowedStoreHosts=['shopee.com.br','shopee.com','shopee.sg','shp.ee','shope.ee','mercadolivre.com.br','mercadolivre.com','mercadolibre.com','meli.la','amazon.com.br','amazon.com','amzn.to'];
+const allowedImageHosts=['susercontent.com','mlstatic.com','media-amazon.com','ssl-images-amazon.com','images-amazon.com','amazon.com'];
+const isAllowedHost=(host:string,domains:string[])=>domains.some(domain=>host===domain||host.endsWith('.'+domain));
+const isStoreHost=(host:string)=>isAllowedHost(host,allowedStoreHosts);
+const isImageHost=(host:string)=>isAllowedHost(host,allowedImageHosts);
 const isPublicHost=(host:string)=>!(/^(localhost|.*\.local)$/i.test(host)||/^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)||host==='::1'||host.startsWith('fc')||host.startsWith('fe80'));
-const safeUrl=(value:string,store=false)=>{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!isPublicHost(u.hostname)||(store?!isStoreHost(u.hostname):!(isStoreHost(u.hostname)||u.hostname==='susercontent.com'||u.hostname.endsWith('.susercontent.com'))))throw new Error('URL nao permitida');return u};
+const safeUrl=(value:string,store=false)=>{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!isPublicHost(u.hostname)||!(store?isStoreHost(u.hostname):isImageHost(u.hostname)))throw new Error('URL nao permitida');return u};
 
 export default async function handler(req:any,res:any){
   if(req.method!=='POST')return res.status(405).json({error:'Método não permitido'});
@@ -35,12 +38,13 @@ export default async function handler(req:any,res:any){
         return res.status(200).json({imageUrl:supabase.storage.from('offer-images').getPublicUrl(path).data.publicUrl});
       }finally{clearTimeout(imageTimer)}
     }
-    if(typeof body.url!=='string')return res.status(400).json({error:'Informe um link da Shopee.'});
+    if(typeof body.url!=='string')return res.status(400).json({error:'Informe um link de marketplace suportado.'});
     let pageUrl=safeUrl(body.url,true);
     const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),9000);
-    let page=await fetch(pageUrl,{redirect:'manual',signal:controller.signal,headers:{'User-Agent':'Mozilla/5.0 (compatible; OrbisOfferPreview/1.0)','Accept':'text/html,application/xhtml+xml'}});
-    if(page.status>=300&&page.status<400){const location=page.headers.get('location');if(!location)return res.status(422).json({error:'Link da Shopee indisponível.'});pageUrl=safeUrl(new URL(location,pageUrl).toString(),true);page=await fetch(pageUrl,{redirect:'manual',signal:controller.signal,headers:{'User-Agent':'Mozilla/5.0 (compatible; OrbisOfferPreview/1.0)','Accept':'text/html,application/xhtml+xml'}})}
-    if(!page.ok)return res.status(422).json({error:'A Shopee não disponibilizou os dados deste produto.'});
+    let page:Response;let redirects=0;
+    while(true){page=await fetch(pageUrl,{redirect:'manual',signal:controller.signal,headers:{'User-Agent':'Mozilla/5.0 (compatible; OrbisOfferPreview/1.0)','Accept':'text/html,application/xhtml+xml'}});if(page.status<300||page.status>=400)break;const location=page.headers.get('location');if(!location||redirects++>=4)return res.status(422).json({error:'Link do marketplace indisponivel.'});pageUrl=safeUrl(new URL(location,pageUrl).toString(),true)}
+    clearTimeout(timer);
+    if(!page.ok)return res.status(422).json({error:'O marketplace nao disponibilizou os dados deste produto.'});
     const html=(await page.text()).slice(0,2_000_000);
     const tags=[...html.matchAll(/<meta\b[^>]*>/gi)].map(m=>m[0]);
     const attr=(tag:string,name:string)=>tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,'i'))?.slice(1).find(Boolean);
