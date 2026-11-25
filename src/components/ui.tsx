@@ -12,6 +12,6 @@ export const Empty=({text}:{text:string})=><div className="empty">{text}</div>;
 import {getState} from '../store';
 export const toast=(m:string)=>{if(getState().prefs.notif===false)return;const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.append(d);setTimeout(()=>d.remove(),2200)};
 /** Campo de valor com máscara R$ (digita-se os centavos). Envia o número no FormData via input oculto. */
-export function Money({name,defaultValue,required}:{name:string;defaultValue?:number|string;required?:boolean}){
+export function Money({name,defaultValue,required,onValueChange}:{name:string;defaultValue?:number|string;required?:boolean;onValueChange?:(value:number)=>void}){
 const [c,setC]=useState(Math.round((+(defaultValue??0)||0)*100));
-return <><input inputMode="numeric" autoComplete="off" placeholder="0,00" required={required} value={c?(c/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''} onChange={e=>setC(parseInt(e.target.value.replace(/\D/g,'').slice(0,12)||'0',10))}/><input type="hidden" name={name} value={c/100}/></>}
+return <><input inputMode="numeric" autoComplete="off" placeholder="0,00" required={required} value={c?(c/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''} onChange={e=>{const next=parseInt(e.target.value.replace(/\D/g,'').slice(0,12)||'0',10);setC(next);onValueChange?.(next/100)}}/><input type="hidden" name={name} value={c/100}/></>}
