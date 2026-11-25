@@ -287,16 +287,16 @@ export default function Compras(){
               const selOffer=i.offers.find(o=>o.selected);
               const storeName=i.purchase?.store || selOffer?.store || (i.offers.length > 0 ? `${i.offers.length} oferta(s)` : 'Sem oferta');
               const itemPrice=i.purchase?.price ?? (avg(i)>0 ? avg(i)*i.qty : 0);
-              return <div key={i.id} className="card hov" style={{margin:0,padding:18,cursor:'pointer',display:'flex',flexDirection:'column',gap:14}} onClick={()=>setM({id:i.id})} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&setM({id:i.id})}>
+              return <div key={i.id} className={'card hov shopping-item-card'+(i.status==='comprado'?' is-purchased':'')} style={{margin:0,padding:18,cursor:'pointer',display:'flex',flexDirection:'column',gap:14}} onClick={()=>setM({id:i.id})} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&setM({id:i.id})}>
                 <div className="between" style={{margin:0}}>
                   <div className="row" style={{margin:0,gap:6}}>
                     <span className={'badge p-'+i.priority}>{L[i.priority]}</span>
-                    <span className="badge">{L[i.status]}</span>
+                    <span className={'badge '+(i.status==='comprado'?'purchased-status':'')}>{i.status==='comprado'&&<CheckCircle2 size={13}/>} {L[i.status]}</span>
                   </div>
                   <button className="ib" aria-label="Excluir item" onClick={e=>{e.stopPropagation();delItem(i)}}><Trash2 size={16}/></button>
                 </div>
                 <div className="row" style={{margin:0,gap:12,alignItems:'flex-start'}}>
-                  <div style={{width:42,height:42,borderRadius:12,background:'rgba(139,92,246,0.15)',color:'var(--pri)',display:'grid',placeItems:'center',flex:'none'}}>
+                  <div className={'shopping-item-icon'+(i.status==='comprado'?' is-purchased':'')} style={{width:42,height:42,borderRadius:12,background:i.status==='comprado'?'rgba(66,214,208,.15)':'rgba(139,92,246,0.15)',color:i.status==='comprado'?'var(--aqua)':'var(--pri)',display:'grid',placeItems:'center',flex:'none'}}>
                     <RoomIcon size={20}/>
                   </div>
                   <div style={{flex:1,minWidth:0}}>
