@@ -32,8 +32,16 @@ export default async function handler(req:any,res:any){
     if(!page.ok)return res.status(422).json({error:'A Shopee não disponibilizou os dados deste produto.'});
     const html=(await page.text()).slice(0,2_000_000);
     const tags=[...html.matchAll(/<meta\b[^>]*>/gi)].map(m=>m[0]);
-    const meta=(name:string)=>{const tag=tags.find(t=>new RegExp(`(?:property|name)=["']${name}["']`,'i').test(t));return tag?.match(/content=["']([^"']+)["']/i)?.[1]?.replace(/&amp;/g,'&')};
-    const image=meta('og:image')||meta('twitter:image');
+    const attr=(tag:string,name:string)=>tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`,'i'))?.slice(1).find(Boolean);
+    const decode=(value:string)=>value.replace(/&amp;/gi,'&').replace(/&#x2f;/gi,'/').replace(/&#47;/g,'/').replace(/\\\//g,'/').replace(/\\u002f/gi,'/');
+    const candidates:string[]=[];
+    for(const tag of tags){const key=(attr(tag,'property')||attr(tag,'name')||attr(tag,'itemprop')||'').toLowerCase();if(['og:image','og:image:secure_url','twitter:image','image'].includes(key)){const value=attr(tag,'content');if(value)candidates.push(decode(value))}}
+    for(const tag of html.match(/<link\b[^>]*>/gi)||[]){if((attr(tag,'rel')||'').toLowerCase().split(/\s+/).includes('image_src')){const value=attr(tag,'href');if(value)candidates.push(decode(value))}}
+    const imageValue=(value:any):string[]=>Array.isArray(value)?value.flatMap(imageValue):typeof value==='string'?[decode(value)]:value&&typeof value==='object'?['url','contentUrl'].flatMap(key=>imageValue(value[key])):[];
+    const visit=(value:any):string[]=>{if(Array.isArray(value))return value.flatMap(visit);if(!value||typeof value!=='object')return[];const type=String(value['@type']||'').toLowerCase();const found=type.includes('product')?imageValue(value.image):[];return [...found,...Object.entries(value).flatMap(([key,child])=>['mainImage','main_image','imageUrl','image_url','cover_image_url'].includes(key)?imageValue(child):visit(child))]};
+    for(const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){try{candidates.push(...visit(JSON.parse(match[1])))}catch{}}
+    for(const match of html.matchAll(/"(?:mainImage|main_image|imageUrl|image_url|cover_image_url)"\s*:\s*"((?:https?:\\?\/\\?\/)[^"]+)"/gi))candidates.push(decode(match[1]));
+    const image=candidates.find(value=>{try{safeUrl(new URL(value,pageUrl).toString());return true}catch{return false}});
     if(!image)return res.status(404).json({error:'Não foi possível localizar a imagem. Você pode adicioná-la manualmente.'});
     const imageUrl=safeUrl(new URL(image,pageUrl).toString());
     const imageController=new AbortController();const imageTimer=setTimeout(()=>imageController.abort(),8000);
