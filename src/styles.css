@@ -43,6 +43,9 @@ a.tab{text-decoration:none}.tab.active{background:var(--pri);color:#fff}.pick{ma
   .app.col .side span,.app.col .side .brand b{opacity:0;max-width:0;visibility:hidden}
   .app.col .grp{max-height:0;margin-block:0;overflow:hidden;opacity:0;transition:max-height .25s ease,margin .25s ease,opacity .15s ease}
   .app.col .side .link{justify-content:center;padding-inline:10px!important;gap:0}
+  .app.col .side .nav-parent{position:relative}
+  .app.col .side .nav-parent>.nav-submenu-arrow{display:none!important}
+  .app.col .side .nav-parent::after{content:"";position:absolute;right:10px;bottom:9px;width:5px;height:5px;border-right:1.5px solid var(--lav);border-bottom:1.5px solid var(--lav);transform:rotate(-45deg);opacity:.9;pointer-events:none}
 }
 @media(prefers-reduced-motion:reduce){.app{transition:none}.side,.side span,.side .brand b{transition:none}}
 .subnav{display:none}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}.badge.up{color:#10B981}.badge.down{color:#ef6b73}

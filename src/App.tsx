@@ -23,7 +23,7 @@ useEffect(()=>{const h=()=>toast('Falha ao sincronizar com o Supabase');window.a
 const R=(n:N,d:number):React.ReactNode=>{const I=n.i,pad={paddingLeft:12+d*14},collapsed=col||!p.labels;
 if(!n.kids)return <NavLink key={n.k} to={n.to!} end className="link" style={pad} aria-label={collapsed?n.l:undefined} title={collapsed?n.l:undefined}><I size={18}/><span>{n.l}</span></NavLink>;
 const open=o[n.k]??loc.pathname.startsWith(n.pre!);
-return <div key={n.k}><button className={'link'+(loc.pathname.startsWith(n.pre!)?' on':'')} style={{...pad,width:'100%'}} aria-label={collapsed?n.l:undefined} title={collapsed?n.l:undefined} onClick={()=>setO({...o,[n.k]:!open})}><I size={18}/><span>{n.l}</span><span style={{marginLeft:'auto',display:'grid'}}>{open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</span></button>{open&&n.kids.map(k=>R(k,d+1))}</div>};
+return <div key={n.k}><button className={'link nav-parent'+(loc.pathname.startsWith(n.pre!)?' on':'')} style={{...pad,width:'100%'}} aria-label={collapsed?n.l:undefined} title={collapsed?n.l:undefined} aria-expanded={open} onClick={()=>setO({...o,[n.k]:!open})}><I size={18}/><span>{n.l}</span><span className="nav-submenu-arrow" style={{marginLeft:'auto',display:'grid'}}>{open?<ChevronDown size={14}/>:<ChevronRight size={14}/>}</span></button>{open&&n.kids.map(k=>R(k,d+1))}</div>};
 const sn=sec(T,loc.pathname);
 	const isCasa=loc.pathname.startsWith("/casa");
 return <div className={'app'+(col||!p.labels?' col':'')}>
