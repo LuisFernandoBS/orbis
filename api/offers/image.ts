@@ -3,7 +3,7 @@ import {createClient} from '@supabase/supabase-js';
 const allowedStoreHosts=['shopee.com.br','shopee.com','shopee.sg'];
 const isStoreHost=(host:string)=>allowedStoreHosts.some(domain=>host===domain||host.endsWith('.'+domain));
 const isPublicHost=(host:string)=>!(/^(localhost|.*\.local)$/i.test(host)||/^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)||host==='::1'||host.startsWith('fc')||host.startsWith('fe80'));
-const safeUrl=(value:string,store=false)=>{const u=new URL(value);if(u.protocol!=='https:'||!isPublicHost(u.hostname)||(store?!isStoreHost(u.hostname):!(isStoreHost(u.hostname)||u.hostname==='susercontent.com'||u.hostname.endsWith('.susercontent.com'))))throw new Error('URL não permitida');return u};
+const safeUrl=(value:string,store=false)=>{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!isPublicHost(u.hostname)||(store?!isStoreHost(u.hostname):!(isStoreHost(u.hostname)||u.hostname==='susercontent.com'||u.hostname.endsWith('.susercontent.com'))))throw new Error('URL nao permitida');return u};
 
 export default async function handler(req:any,res:any){
   if(req.method!=='POST')return res.status(405).json({error:'Método não permitido'});
@@ -23,6 +23,17 @@ export default async function handler(req:any,res:any){
       const type=match[1],ext=type==='image/webp'?'webp':type==='image/png'?'png':'jpg';const path=`${user.id}/${crypto.randomUUID()}.${ext}`;
       const {error:uploadError}=await supabase.storage.from('offer-images').upload(path,bytes,{contentType:type,upsert:false});if(uploadError)return res.status(500).json({error:'Não foi possível salvar a imagem.'});
       return res.status(200).json({imageUrl:supabase.storage.from('offer-images').getPublicUrl(path).data.publicUrl});
+    }
+    if(typeof body.imageUrl==='string'){
+      const sourceUrl=safeUrl(body.imageUrl);const imageController=new AbortController();const imageTimer=setTimeout(()=>imageController.abort(),8000);
+      try{
+        let response=await fetch(sourceUrl,{redirect:'manual',signal:imageController.signal});
+        if(response.status>=300&&response.status<400){const location=response.headers.get('location');if(!location)return res.status(422).json({error:'Link da imagem indisponível.'});const redirected=safeUrl(new URL(location,sourceUrl).toString());response=await fetch(redirected,{redirect:'manual',signal:imageController.signal})}
+        if(!response.ok)return res.status(422).json({error:'Nao foi possivel baixar essa imagem.'});const type=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();if(!['image/jpeg','image/png','image/webp'].includes(type))return res.status(415).json({error:'O link precisa apontar para uma imagem JPG, PNG ou WebP.'});
+        const bytes=new Uint8Array(await response.arrayBuffer());if(!bytes.length||bytes.length>5_000_000)return res.status(413).json({error:'A imagem deve ter até 5 MB.'});const ext=type==='image/webp'?'webp':type==='image/png'?'png':'jpg';const path=`${user.id}/${crypto.randomUUID()}.${ext}`;
+        const {error:uploadError}=await supabase.storage.from('offer-images').upload(path,bytes,{contentType:type,upsert:false});if(uploadError)return res.status(500).json({error:'Não foi possível salvar a imagem no Storage.'});
+        return res.status(200).json({imageUrl:supabase.storage.from('offer-images').getPublicUrl(path).data.publicUrl});
+      }finally{clearTimeout(imageTimer)}
     }
     if(typeof body.url!=='string')return res.status(400).json({error:'Informe um link da Shopee.'});
     let pageUrl=safeUrl(body.url,true);
