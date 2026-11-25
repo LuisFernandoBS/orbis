@@ -8,6 +8,7 @@ const priorityOrder:Record<Priority,number>={alta:0,media:1,baixa:2};
 
 export default function Compras(){
   const s=useStore();
+  const showOfferPreviews=s.prefs.offerPreviews!==false;
   const {room}=useParams();
   const nav=useNavigate();
   const tab=room??'geral';
@@ -286,6 +287,7 @@ export default function Compras(){
             {shown.map(i=>{
               const RoomIcon=roomObj&&ri[roomObj.id]?ri[roomObj.id]:ShoppingCart;
               const selOffer=i.offers.find(o=>o.selected);
+              const previewImage=showOfferPreviews?(i.offers.find(o=>o.selected&&o.imageUrl)?.imageUrl??i.offers.find(o=>o.imageUrl)?.imageUrl):undefined;
               const storeName=i.purchase?.store || selOffer?.store || (i.offers.length > 0 ? `${i.offers.length} oferta(s)` : 'Sem oferta');
               const itemPrice=i.purchase?.price ?? (avg(i)>0 ? avg(i)*i.qty : 0);
               return <div key={i.id} className={'card hov shopping-item-card'+(i.status==='comprado'?' is-purchased':'')} style={{margin:0,padding:18,cursor:'pointer',display:'flex',flexDirection:'column',gap:14}} onClick={()=>setM({id:i.id})} role="button" tabIndex={0} onKeyDown={e=>e.key==='Enter'&&setM({id:i.id})}>
@@ -296,6 +298,7 @@ export default function Compras(){
                   </div>
                   <button className="ib" aria-label="Excluir item" onClick={e=>{e.stopPropagation();delItem(i)}}><Trash2 size={16}/></button>
                 </div>
+                {previewImage&&<img className="shopping-offer-preview" src={previewImage} alt={`Imagem da oferta de ${i.name}`} loading="lazy" onError={e=>{e.currentTarget.style.display='none'}}/>}
                 <div className="row" style={{margin:0,gap:12,alignItems:'flex-start'}}>
                   <div className={'shopping-item-icon'+(i.status==='comprado'?' is-purchased':'')} style={{width:42,height:42,borderRadius:12,background:i.status==='comprado'?'rgba(66,214,208,.15)':'rgba(139,92,246,0.15)',color:i.status==='comprado'?'var(--aqua)':'var(--pri)',display:'grid',placeItems:'center',flex:'none'}}>
                     <RoomIcon size={20}/>

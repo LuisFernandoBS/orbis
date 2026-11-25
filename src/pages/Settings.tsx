@@ -1,4 +1,4 @@
-import {useState,type ReactNode} from 'react';import {Moon,Sun,Download,Upload,RotateCcw,User,Palette,LayoutPanelLeft,Bell,Save,Sparkles} from 'lucide-react';
+import {useState,type ReactNode} from 'react';import {Moon,Sun,Download,Upload,RotateCcw,User,Palette,LayoutPanelLeft,Bell,Save,Sparkles,Image as ImageIcon} from 'lucide-react';
 import {set,resetDemo,getState,usePrefs,flush,wipeLocal} from '../store';import {supabase} from '../services/supabase';import {toast} from '../components/ui';import type {State,Prefs} from '../types';
 const COL=['#8B5CF6','#3B82F6','#06B6D4','#10B981','#F97316','#EC4899'];
 const Tog=({on,fn}:{on:boolean;fn:(v:boolean)=>void})=><button role="switch" aria-checked={on} className={'sw'+(on?' on':'')} onClick={()=>fn(!on)}><i/></button>;
@@ -16,6 +16,7 @@ return <div style={{maxWidth:760,margin:'0 auto'}}><h1>Configurações</h1><p cl
 <Row icon={<Sparkles size={18}/>} t="Animações" d="Transições e microinterações"><Tog on={p.anim} fn={v=>up({anim:v})}/></Row></div>
 <div className="sec">Interface</div><div className="card"><Row icon={<LayoutPanelLeft size={18}/>} t="Rótulos na Sidebar" d="Exibir texto ao lado dos ícones"><Tog on={p.labels} fn={v=>up({labels:v})}/></Row>
 <Row icon={<Bell size={18}/>} t="Notificações" d="Toast de confirmação de ações"><Tog on={p.notif} fn={v=>up({notif:v})}/></Row>
+<Row icon={<ImageIcon size={18}/>} t="Previews das ofertas" d="Mostrar imagens das ofertas nos cards de Compras"><Tog on={p.offerPreviews} fn={v=>up({offerPreviews:v})}/></Row>
 <Row icon={<Save size={18}/>} t="Salvamento Automático" d={p.autosave?'Salvar alterações em tempo real':'Desligado: use "Salvar agora"'}><span className="row" style={{margin:0}}>{!p.autosave&&<button className="btn sm" onClick={()=>{flush();toast('Dados salvos')}}>Salvar agora</button>}<Tog on={p.autosave} fn={v=>{up({autosave:v});if(v)flush()}}/></span></Row></div>
 <div className="sec">Dados</div><div className="card row"><button className="btn ghost" onClick={exp}><Download size={16}/>Exportar</button><label className="btn ghost"><Upload size={16}/>Importar<input hidden type="file" accept="application/json" onChange={e=>imp(e.target.files?.[0])}/></label><button className="btn ghost danger" onClick={()=>confirm('Restaurar dados demonstrativos? Seus dados serão perdidos.')&&resetDemo()}><RotateCcw size={16}/>Restaurar demo</button></div>
 <div className="sec">Sobre o ORBIS</div><div className="card"><Row icon={<Sparkles size={18}/>} t="ORBIS — Sistema Pessoal" d="v1.0.0 · Front-end com dados locais"><span className="badge">Beta</span></Row></div></div>}

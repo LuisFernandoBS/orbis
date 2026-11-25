@@ -21,5 +21,5 @@ export interface MarketState{frequentItems:FrequentItem[];shoppingItems:Shopping
 export interface Objective{id:string;name:string;desc:string;category:string;priority:Priority;startDate:string;dueDate:string|null;status:ObjStatus;favorite:boolean;archived:boolean;completedAt:string|null;createdAt:string}
 export interface PlanningActivity{id:string;type:string;desc:string;date:string;objectiveId:string|null}
 export interface PlanningState{objectives:Objective[];tasks:Task[];customCategories:string[];activities:PlanningActivity[]}
-export interface Prefs{theme:'dark'|'light';accent?:string;compact?:boolean;anim?:boolean;labels?:boolean;notif?:boolean;autosave?:boolean;name?:string;email?:string}
+export interface Prefs{theme:'dark'|'light';accent?:string;compact?:boolean;anim?:boolean;labels?:boolean;notif?:boolean;autosave?:boolean;offerPreviews?:boolean;name?:string;email?:string}
 export interface State{materials:Material[];rooms:Room[];items:Item[];expenses:Expense[];subjects:Subject[];planning:PlanningState;market:MarketState;prefs:Prefs}

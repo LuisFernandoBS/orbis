@@ -11,4 +11,4 @@ const notify=()=>ls.forEach(l=>l());
 /** Após o login: usa os dados da nuvem; se ainda não existem, envia os dados locais (migração). */
 export const hydrate=async()=>{const r=await loadRemote();if(r){state=norm(r);save(state);notify()}else await saveRemote(state)};
 export const wipeLocal=()=>{clearLocal();state=seed();notify()};
-export const usePrefs=()=>{const s=useStore();return{accent:'#8B5CF6',compact:false,anim:true,labels:true,notif:true,autosave:true,name:'Usuário',email:'orbis@pessoal.com',...s.prefs} as Required<Prefs>};
+export const usePrefs=()=>{const s=useStore();return{accent:'#8B5CF6',compact:false,anim:true,labels:true,notif:true,autosave:true,offerPreviews:true,name:'Usuário',email:'orbis@pessoal.com',...s.prefs} as Required<Prefs>};
