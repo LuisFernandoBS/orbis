@@ -27,6 +27,7 @@ export default function Compras(){
   const roomTotalItems = roomItems.length;
   const roomBoughtCount = roomItems.filter(i=>i.status==='comprado').length;
   const roomEstimatedBudget = roomItems.reduce((acc,i)=>acc+(i.purchase?.price ?? (avg(i)*i.qty)),0);
+  const roomSpent = roomItems.filter(i=>i.status==='comprado').reduce((acc,i)=>acc+(i.purchase?.price??0),0);
 
   const shown = roomItems.filter(i=>{
     if(q && !i.name.toLowerCase().includes(q.toLowerCase())) return false;
@@ -331,7 +332,7 @@ export default function Compras(){
                 {roomBoughtCount} de {roomTotalItems} comprados ({roomTotalItems > 0 ? Math.round((roomBoughtCount/roomTotalItems)*100) : 0}%)
               </span>
             </div>
-            <div className="grid" style={{gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:14,margin:0}}>
+            <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:14,margin:0}}>
               <div className="card" style={{margin:0,padding:16,background:'rgba(27,29,45,0.7)',border:'1px solid var(--bd)'}}>
                 <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Total de itens</small>
                 <b style={{fontSize:'1.4rem',display:'block',marginTop:6}}>{roomTotalItems}</b>
@@ -344,6 +345,10 @@ export default function Compras(){
                 <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Orçamento estimado</small>
                 <b style={{fontSize:'1.4rem',display:'block',marginTop:6,color:'var(--lav)'}}>{brl(roomEstimatedBudget)}</b>
               </div>
+              {roomBoughtCount>0&&<div className="card" style={{margin:0,padding:16,background:'rgba(66,214,208,0.09)',border:'1px solid rgba(66,214,208,0.28)'}}>
+                <small style={{color:'var(--mut)',fontSize:'0.75rem',textTransform:'uppercase',letterSpacing:'0.05em'}}>Gasto com itens comprados</small>
+                <b style={{fontSize:'1.4rem',display:'block',marginTop:6,color:'var(--aqua)'}}>{brl(roomSpent)}</b>
+              </div>}
             </div>
           </div>
         )}
