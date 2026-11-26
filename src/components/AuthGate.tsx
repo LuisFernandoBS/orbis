@@ -1,5 +1,6 @@
 import {useEffect,useState,type ReactNode} from 'react';import type {Session} from '@supabase/supabase-js';
 import {supabase} from '../services/supabase';import {hydrate} from '../store';import {fd} from './ui';
+function SplashScreen({syncing=false}:{syncing?:boolean}){return <div className="orbis-splash" role="status" aria-live="polite"><div className="splash-stars" aria-hidden="true"><i/><i/><i/><i/><i/></div><div className="splash-center"><div className="splash-orbit splash-orbit-one"/><div className="splash-orbit splash-orbit-two"/><div className="splash-logo-wrap"><img src="/logo.png" alt=""/><span/></div><div className="splash-wordmark">ORBIS</div><div className="splash-caption">{syncing?'Preparando seus dados':'Seu espaço, em harmonia'}</div><div className="splash-loader" aria-hidden="true"><i/></div></div><div className="splash-footnote">{syncing?'Sincronizando seu espaço':'Carregando sua experiência'}</div></div>}
 function Login(){const [up,setUp]=useState(false);const [msg,setMsg]=useState('');const [busy,setBusy]=useState(false);
 const go=async(e:React.FormEvent<HTMLFormElement>)=>{e.preventDefault();const f=fd(e);setBusy(true);setMsg('');
 try{const r=up?await supabase.auth.signUp({email:f.email,password:f.password}):await supabase.auth.signInWithPassword({email:f.email,password:f.password});
