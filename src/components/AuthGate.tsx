@@ -12,6 +12,6 @@ return <div className="overlay" style={{position:'static',minHeight:'100dvh'}}><
 export default function AuthGate({children}:{children:ReactNode}){const [ses,setSes]=useState<Session|null|undefined>(undefined);const [ready,setReady]=useState(false);const [err,setErr]=useState('');
 useEffect(()=>{supabase.auth.getSession().then(({data,error})=>{if(error)setErr(error.message);setSes(data.session)});const {data}=supabase.auth.onAuthStateChange((_e,s)=>{setErr('');setSes(s)});return()=>data.subscription.unsubscribe()},[]);
 const uid=ses?.user.id;useEffect(()=>{setReady(false);if(uid)hydrate().then(()=>setReady(true)).catch(e=>setErr(String(e?.message??e)))},[uid]);
-if(ses===undefined)return <div className="empty">Carregando…</div>;if(!ses)return <Login/>;
+if(ses===undefined)return <SplashScreen/>;if(!ses)return <Login/>;
 if(err)return <div className="empty">Erro ao carregar seus dados: {err}<br/>Rodou o supabase/schema.sql?</div>;
-return ready?<>{children}</>:<div className="empty">Sincronizando…</div>}
+return ready?<>{children}</>:<SplashScreen syncing/>}
